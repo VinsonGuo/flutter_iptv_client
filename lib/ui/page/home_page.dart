@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
 import 'package:flutter_iptv_client/model/m3u8_entry.dart';
+import 'package:flutter_iptv_client/ui/page/language_page.dart';
 import 'package:flutter_iptv_client/ui/page/video_page.dart';
 import 'package:flutter_iptv_client/ui/widget/channel_search_delegate.dart';
 import 'package:flutter_iptv_client/ui/widget/m3u8_thumbnail.dart';
@@ -21,7 +22,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String selectedCategory = channelCategories[0];
 
   @override
   void initState() {
@@ -32,11 +32,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final channels = context.select((ChannelProvider value) => value.channels);
+    final category = context.select((ChannelProvider value) => value.category);
+    final language = context.select((ChannelProvider value) => value.language);
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_)=>LanguagePage()));
+          }, icon: language == 'all'? Icon(Icons.language,):Image.asset('assets/images/flags/${isoMapping[language]}.png', height: 28,)),
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
                 context: context,
@@ -56,14 +61,11 @@ class _HomePageState extends State<HomePage> {
                 final item = channelCategories[index];
                 return ListTile(
                   title: Text(item.toUpperCase()),
-                  selected: selectedCategory == item,
+                  selected: category == item,
                   selectedTileColor: Theme.of(context).colorScheme.onPrimary,
                   selectedColor: Theme.of(context).colorScheme.primary,
                   onTap: () {
-                    setState(() {
-                      selectedCategory = item;
-                    });
-                    context.read<ChannelProvider>().select(category: item);
+                    context.read<ChannelProvider>().selectCategory(category: item);
                   },
                 );
               },

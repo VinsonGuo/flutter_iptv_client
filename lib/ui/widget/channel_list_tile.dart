@@ -20,43 +20,52 @@ class ChannelListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isFavorite = item.isFavorite;
     final url = item.url;
-    final gradient = url == null? [Colors.grey, Colors.grey]:[Theme.of(context).colorScheme.primary,Theme.of(context).colorScheme.tertiary];
+    final gradient = url == null
+        ? [Colors.grey, Colors.grey]
+        : [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.tertiary
+          ];
     return InkWell(
       onTap: () {
-        if (url != null) {
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => VideoPage(url: url)));
-        }
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => VideoPage(
+                  channel: item,
+                )));
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
-          gradient: LinearGradient(colors: gradient, begin: Alignment.topCenter, end: Alignment.bottomCenter)
-        ),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter)),
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 40, top: 20, left: 10, right: 10),
+              padding: const EdgeInsets.only(
+                  bottom: 40, top: 20, left: 10, right: 10),
               child: CachedNetworkImage(
                 width: double.infinity,
                 height: double.infinity,
                 imageUrl: item.logo ?? '',
-                errorWidget: (_, __, ___) =>
-                const Icon(
-                  Icons.error,
-                  size: 24,
-                ),
+                errorWidget: (_, __, ___) => const Icon(Icons.error, size: 24,),
               ),
             ),
             Align(
               alignment: Alignment(0, 0.9),
-              child: Text(item.name, style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary)),
+              child: Text(item.name,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary)),
             ),
             Align(
               alignment: Alignment(0.9, -0.9),
               child: InkWell(
                 onTap: () {
-                  context.read<ChannelProvider>().setFavorite(item.id, !isFavorite);
+                  context
+                      .read<ChannelProvider>()
+                      .setFavorite(item.id, !isFavorite);
                 },
                 child: Padding(
                     padding: EdgeInsets.all(4),

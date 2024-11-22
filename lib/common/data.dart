@@ -1,2 +1,35 @@
-const channelCategories = ["all", "general","education","auto","shop","news","music","lifestyle","entertainment","animation","series","religious","kids","comedy","sports","xxx","classic","movies","cooking","business","outdoor","documentary","culture","legislative","weather","family","relax","travel","science"];
+const channelCategories = ["favorite", "all", "general","education","auto","shop","news","music","lifestyle","entertainment","animation","series","religious","kids","comedy","sports","xxx","classic","movies","cooking","business","outdoor","documentary","culture","legislative","weather","family","relax","travel","science"];
 const channelLanguage = ["all", "spa","fra","dan","por","bul","rus","nld","eng","ell","tel","ita","aze","pus","deu","tha","pol","hun","zho","ukr","lav","kaz","prs","kat","fas","tam","ara","sqi","slk","cat","srp","slv","tur","ron","mal","urd","eus","lit","mya","kur","pan","heb","hye","ben","amh","uzb","kor","hin","mar","ces","wol","fil","nep","kan","jpn","swa","guj","ind","sin","aar","hau","ibo","yor","swe","mon","vie","tgl","ori","kir","bos","fin","mkd","hbs","div","est","isl","tuk","cmn","pes","mlg","glg","ltz","cnr","som","tir","yue","asm","msa","hrv","snd","tig","bho","tgk","khm","dzo","nor","prd","bel","kin","urk","its","jav","gle","lao","nan","hue","gmy","mlt","pap","smo","afr","orm","rom","ewe","gsw","swh","tet","kok","far","hat","hmn","kik","srb","kam","aii","man","kal","fao","kmr","ckb","lug","zul","cro","oci","dhw","war","gom","fuc","lld","luo","run","lah","mos","cym","crs","bod","syr","bak","mri","sat","nob","yua","aym","lat","uig"];
+const Map<String, String> isoMapping = {
+  "spa": "es", "fra": "fr", "dan": "da", "por": "pt", "bul": "bg",
+  "rus": "ru", "nld": "nl", "eng": "en", "ell": "el", "tel": "te",
+  "ita": "it", "aze": "az", "pus": "ps", "deu": "de", "tha": "th",
+  "pol": "pl", "hun": "hu", "zho": "cn", "ukr": "uk", "lav": "lv",
+  "kaz": "kk", "prs": "fa", "kat": "ka", "fas": "fa", "tam": "ta",
+  "ara": "ar", "sqi": "sq", "slk": "sk", "cat": "ca", "srp": "sr",
+  "slv": "sl", "tur": "tr", "ron": "ro", "mal": "ml", "urd": "ur",
+  "eus": "eu", "lit": "lt", "mya": "my", "kur": "ku", "pan": "pa",
+  "heb": "he", "hye": "hy", "ben": "bn", "amh": "am", "uzb": "uz",
+  "kor": "ko", "hin": "hi", "mar": "mr", "ces": "cs", "wol": "wo",
+  "fil": "fil", "nep": "ne", "kan": "kn", "jpn": "ja", "swa": "sw",
+  "guj": "gu", "ind": "id", "sin": "si", "aar": "aa", "hau": "ha",
+  "ibo": "ig", "yor": "yo", "swe": "sv", "mon": "mn", "vie": "vi",
+  "tgl": "tl", "ori": "or", "kir": "ky", "bos": "bs", "fin": "fi",
+  "mkd": "mk", "hbs": "sh", "div": "dv", "est": "et", "isl": "is",
+  "tuk": "tk", "cmn": "zh", "pes": "fa", "mlg": "mg", "glg": "gl",
+  "ltz": "lb", "cnr": "cnr", "som": "so", "tir": "ti", "yue": "zh",
+  "asm": "as", "msa": "ms", "hrv": "hr", "snd": "sd", "tig": "ti",
+  "bho": "bho", "tgk": "tg", "khm": "km", "dzo": "dz", "nor": "no",
+  "prd": "fa", "bel": "be", "kin": "rw", "urk": "uz", "its": "it",
+  "jav": "jv", "gle": "ga", "lao": "lo", "nan": "zh", "hue": "hue",
+  "gmy": "gmy", "mlt": "mt", "pap": "pap", "smo": "sm", "afr": "af",
+  "orm": "om", "rom": "ro", "ewe": "ee", "gsw": "gsw", "swh": "sw",
+  "tet": "tet", "kok": "kok", "far": "fa", "hat": "ht", "hmn": "hmn",
+  "kik": "ki", "srb": "sr", "kam": "kam", "aii": "aii", "man": "man",
+  "kal": "kl", "fao": "fo", "kmr": "ku", "ckb": "ckb", "lug": "lg",
+  "zul": "zu", "cro": "hr", "oci": "oc", "dhw": "dhw", "war": "war",
+  "gom": "gom", "fuc": "fuc", "lld": "lld", "luo": "luo", "run": "rn",
+  "lah": "lah", "mos": "mos", "cym": "cy", "crs": "crs", "bod": "bo",
+  "syr": "syr", "bak": "ba", "mri": "mi", "sat": "sat", "nob": "nb",
+  "yua": "yua", "aym": "ay", "lat": "la", "uig": "ug"
+};
