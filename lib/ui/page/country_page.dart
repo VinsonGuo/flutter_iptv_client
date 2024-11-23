@@ -12,25 +12,23 @@ class CountryPage extends StatelessWidget {
     final language = context.select((ChannelProvider value) => value.country);
     return Scaffold(
       appBar: AppBar(title: Text('Select Country/Region')),
-      body: Expanded(
-        child: GridView.builder(
-            gridDelegate:
-                SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
-            itemBuilder: (_, index) {
-              final item = channelCountries[index];
-              return ListTile(
-                selected: language == item,
-                selectedTileColor: Theme.of(context).colorScheme.onPrimary,
-                selectedColor: Theme.of(context).colorScheme.primary,
-                title: item == 'all'? Icon(Icons.language, size: 48,):Image.asset('assets/images/flags/${item.toLowerCase()}.png', height: 48,),
-                subtitle: Text(item, textAlign: TextAlign.center,),
-                onTap: () {
-                  context.read<ChannelProvider>().selectCountry(country:item);
-                  Navigator.of(context).pop();
-                },
-              );
-            }, itemCount: channelLanguage.length,),
-      ),
+      body: GridView.builder(
+          gridDelegate:
+              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
+          itemBuilder: (_, index) {
+            final item = channelCountries[index];
+            return ListTile(
+              selected: language == item,
+              selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+              selectedColor: Theme.of(context).colorScheme.primary,
+              title: item == 'all'? Icon(Icons.language, size: 48,):Image.asset('assets/images/flags/${item.toLowerCase()}.png', height: 48,),
+              subtitle: Text(item, textAlign: TextAlign.center,),
+              onTap: () {
+                context.read<ChannelProvider>().selectCountry(country:item);
+                Navigator.of(context).pop();
+              },
+            );
+          }, itemCount: channelCountries.length,),
     );
   }
 }

@@ -37,6 +37,7 @@ class _VideoPageState extends State<VideoPage> {
         autoPlay: true,
         showControlsOnInitialize: false,
         isLive: true,
+        allowedScreenSleep: false,
         deviceOrientationsAfterFullScreen: [
           DeviceOrientation.landscapeLeft,
           DeviceOrientation.landscapeRight
