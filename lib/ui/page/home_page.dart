@@ -4,7 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
 import 'package:flutter_iptv_client/model/m3u8_entry.dart';
-import 'package:flutter_iptv_client/ui/page/language_page.dart';
+import 'package:flutter_iptv_client/ui/page/import_page.dart';
+import 'package:flutter_iptv_client/ui/page/country_page.dart';
 import 'package:flutter_iptv_client/ui/page/video_page.dart';
 import 'package:flutter_iptv_client/ui/widget/channel_search_delegate.dart';
 import 'package:flutter_iptv_client/ui/widget/m3u8_thumbnail.dart';
@@ -22,31 +23,53 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late ScrollController scrollController;
 
   @override
   void initState() {
     super.initState();
-    context.read<ChannelProvider>().getChannels();
+    scrollController = ScrollController();
+    var provider = context.read<ChannelProvider>();
+    provider.getChannels();
   }
 
   @override
   Widget build(BuildContext context) {
     final channels = context.select((ChannelProvider value) => value.channels);
     final category = context.select((ChannelProvider value) => value.category);
-    final language = context.select((ChannelProvider value) => value.language);
+    final country = context.select((ChannelProvider value) => value.country);
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (_)=>LanguagePage()));
-          }, icon: language == 'all'? Icon(Icons.language,):Image.asset('assets/images/flags/${isoMapping[language]}.png', height: 28,)),
           IconButton(
+            focusColor: Colors.grey,
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CountryPage()));
+              },
+              icon: country == 'all'
+                  ? const Icon(
+                      Icons.language,
+                    )
+                  : Image.asset(
+                      'assets/images/flags/${country.toLowerCase()}.png',
+                      height: 28,
+                    )),
+          IconButton(
+            focusColor: Colors.grey,
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
                 context: context,
                 delegate: ChannelSearchDelegate(),
               );
+            },
+          ),
+          IconButton(
+            focusColor: Colors.grey,
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<ChannelProvider>().getChannels();
             },
           )
         ],
@@ -60,12 +83,16 @@ class _HomePageState extends State<HomePage> {
               itemBuilder: (_, index) {
                 final item = channelCategories[index];
                 return ListTile(
+                  autofocus: category == item,
                   title: Text(item.toUpperCase()),
                   selected: category == item,
                   selectedTileColor: Theme.of(context).colorScheme.onPrimary,
                   selectedColor: Theme.of(context).colorScheme.primary,
                   onTap: () {
-                    context.read<ChannelProvider>().selectCategory(category: item);
+                    context
+                        .read<ChannelProvider>()
+                        .selectCategory(category: item);
+                    scrollController.jumpTo(0);
                   },
                 );
               },
@@ -78,6 +105,7 @@ class _HomePageState extends State<HomePage> {
                 Expanded(
                   child: Scrollbar(
                     child: GridView.builder(
+                      controller: scrollController,
                       itemBuilder: (context, index) {
                         final item = channels[index];
                         return ChannelListTile(item: item);
@@ -103,5 +131,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     super.dispose();
+    scrollController.dispose();
   }
 }

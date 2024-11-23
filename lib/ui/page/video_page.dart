@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
+
+import '../../provider/channel_provider.dart';
 
 class VideoPage extends StatefulWidget {
   const VideoPage({super.key, required this.channel});
@@ -18,11 +21,13 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   late ChewieController chewieController;
   late VideoPlayerController videoPlayerController;
+  late bool isFavorite;
 
   @override
   void initState() {
     super.initState();
     logger.i('video url is ${widget.channel.url}');
+    isFavorite = widget.channel.isFavorite;
     videoPlayerController =
         VideoPlayerController.networkUrl(Uri.parse(widget.channel.url ?? ''));
     chewieController = ChewieController(
@@ -32,19 +37,27 @@ class _VideoPageState extends State<VideoPage> {
         autoPlay: true,
         showControlsOnInitialize: false,
         isLive: true,
-        deviceOrientationsAfterFullScreen: [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
-        deviceOrientationsOnEnterFullScreen: [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
+        deviceOrientationsAfterFullScreen: [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight
+        ],
+        deviceOrientationsOnEnterFullScreen: [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight
+        ],
         errorBuilder: (_, msg) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error,
-              size: 24,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error,
+                  size: 24,
+                ),
+                SizedBox(
+                  height: 6,
+                ),
+                Text(msg),
+              ],
             ),
-            SizedBox(height: 6,),
-            Text(msg),
-          ],
-        ),
         placeholder: const Center(child: CircularProgressIndicator()));
   }
 
@@ -53,39 +66,49 @@ class _VideoPageState extends State<VideoPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.channel.name),
+        actions: [
+          IconButton(
+              focusColor: Colors.grey,
+              onPressed: () {
+                context
+                    .read<ChannelProvider>()
+                    .setFavorite(widget.channel.id, !isFavorite);
+                setState(() {
+                  isFavorite = !isFavorite;
+                });
+              },
+              icon: Icon(
+                isFavorite ? Icons.star : Icons.star_border,
+                size: 24,
+              ))
+        ],
       ),
       body: Row(
         children: [
           AspectRatio(
-            aspectRatio: 16/9,
+            aspectRatio: 16 / 9,
             child: Chewie(
               controller: chewieController,
             ),
           ),
-          Expanded(child: SingleChildScrollView(child: Table(
-            defaultColumnWidth: FlexColumnWidth(0.5),
-            border: TableBorder.all(color:Theme.of(context).colorScheme.secondaryContainer),
-            children: [
-              TableRow(
-                children: [
-                  Text('Category'),
-                  Text(widget.channel.categories.join(', ')),
-                ]
-              ),
-              TableRow(
-                  children: [
-                    Text('Language'),
-                    Text(widget.channel.languages.join(', ')),
-                  ]
-              ),
-              TableRow(
-                  children: [
-                    Text('WebSite'),
-                    Text(widget.channel.website ?? ''),
-                  ]
-              ),
-            ],
-          ),))
+          Expanded(
+              child: SingleChildScrollView(
+            child: Column(
+              children: [
+                FilledButton(
+                    autofocus: true,
+                    onPressed: () {
+                      chewieController.enterFullScreen();
+                    },
+                    child: Row(
+                      children: [
+                        Icon(Icons.fullscreen),
+                        Text('FullScreen'),
+                      ],
+                    ))
+              ],
+            ),
+          ))
         ],
       ),
     );
