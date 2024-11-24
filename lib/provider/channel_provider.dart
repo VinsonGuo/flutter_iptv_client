@@ -166,9 +166,12 @@ class ChannelProvider with ChangeNotifier {
       final index = channels.indexWhere((element) => element.id == id);
       if (index >= 0) {
         final copiedChannelList = channels.toList();
-        final channel = copiedChannelList[index];
-        copiedChannelList[index] = channel.copyWith(isFavorite: isFavorite);
+        final channel = copiedChannelList[index].copyWith(isFavorite: isFavorite);
+        copiedChannelList[index] = channel;
         channels = copiedChannelList;
+        if (currentChannel != null && currentChannel!.id == channel.id) {
+          currentChannel = channel;
+        }
         notifyListeners();
       }
     });
