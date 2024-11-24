@@ -45,80 +45,79 @@ class _ChannelListTileState extends State<ChannelListTile> {
     return InkWell(
       focusColor: Colors.transparent,
       onTap: () {
+        context
+            .read<ChannelProvider>()
+            .setCurrentChannel(widget.item);
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => VideoPage(
-                  channel: widget.item,
-                )));
+            builder: (_) => const VideoPage()));
       },
       onLongPress: () {
         context
             .read<ChannelProvider>()
             .setFavorite(widget.item.id, !isFavorite);
       },
-      child: Focus(
-        child: Builder(builder: (context) {
-          final hasFocus = Focus.of(context).hasFocus;
-          final gradient = hasFocus
-              ? [
-                  Theme.of(context).colorScheme.primary.withAlpha(150),
-                  Theme.of(context).colorScheme.tertiary.withAlpha(150)
-                ]
-              : [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.tertiary
-                ];
-          return Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-                gradient: LinearGradient(
-                    colors: gradient,
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter)),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      bottom: 40, top: 20, left: 10, right: 10),
-                  child: CachedNetworkImage(
-                    width: double.infinity,
-                    height: double.infinity,
-                    imageUrl: widget.item.logo ?? '',
-                    errorWidget: (_, __, ___) => const Icon(
-                      Icons.error,
-                      size: 24,
-                    ),
+      child: Builder(builder: (context) {
+        final hasFocus = Focus.of(context).hasFocus;
+        final gradient = hasFocus
+            ? [
+                Theme.of(context).colorScheme.primary.withAlpha(150),
+                Theme.of(context).colorScheme.tertiary.withAlpha(150)
+              ]
+            : [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.tertiary
+              ];
+        return Container(
+          decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              gradient: LinearGradient(
+                  colors: gradient,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter)),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    bottom: 40, top: 20, left: 10, right: 10),
+                child: CachedNetworkImage(
+                  width: double.infinity,
+                  height: double.infinity,
+                  imageUrl: widget.item.logo ?? '',
+                  errorWidget: (_, __, ___) => const Icon(
+                    Icons.error,
+                    size: 24,
                   ),
                 ),
-                Align(
-                  alignment: Alignment(0, 0.9),
-                  child: Text(widget.item.name,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary)),
+              ),
+              Align(
+                alignment: const Alignment(0, 0.9),
+                child: Text(widget.item.name,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimary)),
+              ),
+              Align(
+                alignment: const Alignment(0.9, -0.9),
+                child: InkWell(
+                  canRequestFocus: false,
+                  onTap: () {
+                    context
+                        .read<ChannelProvider>()
+                        .setFavorite(widget.item.id, !isFavorite);
+                  },
+                  child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        isFavorite ? Icons.star : Icons.star_border,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                        size: 24,
+                      )),
                 ),
-                Align(
-                  alignment: Alignment(0.9, -0.9),
-                  child: InkWell(
-                    canRequestFocus: false,
-                    onTap: () {
-                      context
-                          .read<ChannelProvider>()
-                          .setFavorite(widget.item.id, !isFavorite);
-                    },
-                    child: Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          isFavorite ? Icons.star : Icons.star_border,
-                          color: Theme.of(context).colorScheme.onSecondary,
-                          size: 24,
-                        )),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

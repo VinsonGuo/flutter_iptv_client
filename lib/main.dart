@@ -47,7 +47,10 @@ class MyApp extends StatelessWidget {
               Visibility(
                   visible:
                       context.select((ChannelProvider value) => value.loading),
-                  child: Center(child: CircularProgressIndicator()))
+                  child: Container(
+                      alignment: Alignment.center,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(100),
+                      child: const CircularProgressIndicator()))
             ],
           ),
         );

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class ChannelProvider with ChangeNotifier {
   List<Channel> channels = [];
   List<Channel> allChannels = [];
   List<String> favoriteList = [];
+  Channel? currentChannel;
   String category = 'all';
   String country = 'all';
   bool filterValidChannel = true;
@@ -80,38 +82,39 @@ class ChannelProvider with ChangeNotifier {
 
     final response = await sharedDio.get(m3u8Url);
     if (response.isSuccess) {
-      String m3uContent = response.data.toString();
-      final m3u8Map = Map.fromEntries(
-          parseM3U8(m3uContent).map((e) => MapEntry(e.tvgId, e)));
-      final channelsContent =
-          await rootBundle.loadString('assets/files/channels.json');
-      var allChannelList = (jsonDecode(channelsContent) as List).map((e) {
-        final channel = Channel.fromJson(e);
-        return channel;
-      }).toList();
+        String m3uContent = response.data.toString();
+        final m3u8Map = Map.fromEntries(
+            parseM3U8(m3uContent).map((e) => MapEntry(e.tvgId, e)));
+        final channelsContent = await rootBundle.loadString('assets/files/channels.json');
+      final allChannelList = await Isolate.run(() {
+        return (jsonDecode(channelsContent) as List).map((e) {
+          final channel = Channel.fromJson(e);
+          return channel;
+        }).toList();
+      });
 
       for (final channel in allChannelList) {
-        channel.isFavorite = favoriteList.contains(channel.id);
-        final m3u8Entry = m3u8Map[channel.id];
-        if (m3u8Entry != null) {
-          channel.url = m3u8Entry.url;
+          channel.isFavorite = favoriteList.contains(channel.id);
+          final m3u8Entry = m3u8Map[channel.id];
+          if (m3u8Entry != null) {
+            channel.url = m3u8Entry.url;
+          }
         }
-      }
-      allChannels = allChannelList;
-      channels = _filterChannel();
+        allChannels = allChannelList;
+        channels = await _filterChannel();
     }
     loading = false;
     notifyListeners();
   }
 
-  void selectCategory({String category = 'all'}) {
+  void selectCategory({String category = 'all'}) async{
     this.category = category;
-    var channelList = _filterChannel();
+    var channelList = await _filterChannel();
     channels = channelList;
     notifyListeners();
   }
 
-  List<Channel> _filterChannel() {
+  Future<List<Channel>> _filterChannel() async{
     List<Channel> channelList = allChannels.toList();
     if (filterValidChannel) {
       channelList =
@@ -133,11 +136,11 @@ class ChannelProvider with ChangeNotifier {
     return channelList;
   }
 
-  void selectCountry({String country = 'all'}) {
+  void selectCountry({String country = 'all'}) async {
     sharedPreferences.setString(countryKey, country);
     this.country = country;
     var channelList = _filterChannel();
-    channels = channelList;
+    channels = await channelList;
     notifyListeners();
   }
 
@@ -170,5 +173,32 @@ class ChannelProvider with ChangeNotifier {
       }
     });
     sharedPreferences.setStringList(favoriteListKey, favoriteList);
+  }
+
+  void setCurrentChannel(Channel? channel) {
+    currentChannel = channel;
+    notifyListeners();
+  }
+
+  bool previousChannel() {
+    if (currentChannel != null) {
+      final index = channels.indexOf(currentChannel!);
+      if (index > 0 && index < channels.length) {
+        setCurrentChannel(channels[index - 1]);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool nextChannel() {
+    if (currentChannel != null) {
+      final index = channels.indexOf(currentChannel!);
+      if (index >= 0 && index < channels.length - 1) {
+        setCurrentChannel(channels[index + 1]);
+        return true;
+      }
+    }
+    return false;
   }
 }
