@@ -260,18 +260,16 @@ class _VideoPageState extends State<VideoPage> {
                   width: 20,
                 ),
                 Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
-                          const SizedBox(height: 10,),
-                          Visibility(
-                              visible: desc != null,
-                              replacement: const LinearProgressIndicator(),
-                              child: MarkdownBody(data: desc ?? '')),
-                        ],
-                      ),
-                    )),
+                  child: ListView(
+                      children: [
+                        Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
+                        const SizedBox(height: 10,),
+                        Visibility(
+                            visible: desc != null,
+                            replacement: const LinearProgressIndicator(),
+                            child: MarkdownBody(data: desc ?? '')),
+                      ],
+                  )),
                 const SizedBox(
                   width: 20,
                 ),

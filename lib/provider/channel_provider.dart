@@ -81,36 +81,62 @@ class ChannelProvider with ChangeNotifier {
     notifyListeners();
     favoriteList = sharedPreferences.getStringList(favoriteListKey) ?? [];
     country = sharedPreferences.getString(countryKey) ?? 'all';
+    final dir = await getApplicationDocumentsDirectory();
+    final m3uFile = File('${dir.path}/index.m3u');
+    var needUpdateFromNetwork = true;
     try {
-      final response = await sharedDio.get(m3u8Url);
-      if (response.isSuccess) {
-        String m3uContent = response.data.toString();
-        final m3u8Map = Map.fromEntries(
-            parseM3U8(m3uContent).map((e) => MapEntry(e.tvgId, e)));
-        final channelsContent = await rootBundle.loadString(
-            'assets/files/channels.json');
-        final allChannelList = await Isolate.run(() {
-          return (jsonDecode(channelsContent) as List).map((e) {
-            final channel = Channel.fromJson(e);
-            return channel;
-          }).toList();
-        });
-
-        for (final channel in allChannelList) {
-          channel.isFavorite = favoriteList.contains(channel.id);
-          final m3u8Entry = m3u8Map[channel.id];
-          if (m3u8Entry != null) {
-            channel.url = m3u8Entry.url;
-          }
+      if (m3uFile.existsSync() && m3uFile.lengthSync() > 0) {
+        String m3uContent = await m3uFile.readAsString();
+        await _parseChannels(m3uContent);
+        final lastModified = await m3uFile.lastModified();
+        if (lastModified.isBefore(DateTime.now().subtract(const Duration(hours: 6)))) {
+          needUpdateFromNetwork = true;
+        } else {
+          needUpdateFromNetwork = false;
         }
-        allChannels = allChannelList;
-        channels = await _filterChannel();
       }
     } catch (e) {
-      logger.e('getChannels failed', error: e);
+      logger.e('getChannels From file failed', error: e);
+    }
+    logger.i('needUpdateFromNetwork $needUpdateFromNetwork');
+    if (needUpdateFromNetwork) {
+      try {
+        final response = await sharedDio.get(m3u8Url);
+        if (response.isSuccess) {
+          String m3uContent = response.data.toString();
+          await m3uFile.create(recursive: true);
+          m3uFile.writeAsString(m3uContent);
+          await _parseChannels(m3uContent);
+        }
+      } catch (e) {
+        logger.e('getChannels failed', error: e);
+      }
     }
     loading = false;
     notifyListeners();
+  }
+
+  Future<void> _parseChannels(String m3uContent) async {
+    final m3u8Map = Map.fromEntries(
+        parseM3U8(m3uContent).map((e) => MapEntry(e.tvgId, e)));
+    final channelsContent = await rootBundle.loadString(
+        'assets/files/channels.json');
+    final allChannelList = await Isolate.run(() {
+      return (jsonDecode(channelsContent) as List).map((e) {
+        final channel = Channel.fromJson(e);
+        return channel;
+      }).toList();
+    });
+
+    for (final channel in allChannelList) {
+      channel.isFavorite = favoriteList.contains(channel.id);
+      final m3u8Entry = m3u8Map[channel.id];
+      if (m3u8Entry != null) {
+        channel.url = m3u8Entry.url;
+      }
+    }
+    allChannels = allChannelList;
+    channels = await _filterChannel();
   }
 
   void selectCategory({String category = 'all'}) async{
