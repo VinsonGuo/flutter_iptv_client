@@ -43,4 +43,4 @@ app.*.map.json
 /android/app/release
 
 # project private config
-/assets/files/gemini_key.txt
+.env

@@ -51,6 +51,7 @@ dependencies:
   flutter_gemini: ^2.0.5
   flutter_markdown: ^0.7.4+2
   url_launcher: ^6.1.7
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +83,7 @@ flutter:
     - assets/files/
     - assets/images/
     - assets/images/flags/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
