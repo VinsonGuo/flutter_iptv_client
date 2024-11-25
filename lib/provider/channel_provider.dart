@@ -81,21 +81,22 @@ class ChannelProvider with ChangeNotifier {
     notifyListeners();
     favoriteList = sharedPreferences.getStringList(favoriteListKey) ?? [];
     country = sharedPreferences.getString(countryKey) ?? 'all';
-
-    final response = await sharedDio.get(m3u8Url);
-    if (response.isSuccess) {
+    try {
+      final response = await sharedDio.get(m3u8Url);
+      if (response.isSuccess) {
         String m3uContent = response.data.toString();
         final m3u8Map = Map.fromEntries(
             parseM3U8(m3uContent).map((e) => MapEntry(e.tvgId, e)));
-        final channelsContent = await rootBundle.loadString('assets/files/channels.json');
-      final allChannelList = await Isolate.run(() {
-        return (jsonDecode(channelsContent) as List).map((e) {
-          final channel = Channel.fromJson(e);
-          return channel;
-        }).toList();
-      });
+        final channelsContent = await rootBundle.loadString(
+            'assets/files/channels.json');
+        final allChannelList = await Isolate.run(() {
+          return (jsonDecode(channelsContent) as List).map((e) {
+            final channel = Channel.fromJson(e);
+            return channel;
+          }).toList();
+        });
 
-      for (final channel in allChannelList) {
+        for (final channel in allChannelList) {
           channel.isFavorite = favoriteList.contains(channel.id);
           final m3u8Entry = m3u8Map[channel.id];
           if (m3u8Entry != null) {
@@ -104,6 +105,9 @@ class ChannelProvider with ChangeNotifier {
         }
         allChannels = allChannelList;
         channels = await _filterChannel();
+      }
+    } catch (e) {
+      logger.e('getChannels failed', error: e);
     }
     loading = false;
     notifyListeners();

@@ -3,9 +3,11 @@ import 'package:chewie/chewie.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../provider/channel_provider.dart';
@@ -98,6 +100,7 @@ class _VideoPageState extends State<VideoPage> {
                 setState(() {
                   isFullscreen = false;
                 });
+                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
               }
             },
             child: KeyboardListener(
@@ -117,7 +120,7 @@ class _VideoPageState extends State<VideoPage> {
                     Visibility(
                       visible: showFullscreenInfo,
                       child: Align(
-                        alignment: Alignment(0, 0.9),
+                        alignment: const Alignment(0, 0.9),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.max,
@@ -154,7 +157,7 @@ class _VideoPageState extends State<VideoPage> {
                       size: 24,
                     ),
                   ),
-                  SizedBox(width: 10,),
+                  const SizedBox(width: 10,),
                   Text(channel.name),
                 ],
               ),
@@ -172,77 +175,107 @@ class _VideoPageState extends State<VideoPage> {
                     ))
               ],
             ),
-            body: SingleChildScrollView(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 160,
-                        child: AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: chewie,
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  width: 20,
+                ),
+                Column(
+                  children: [
+                    Expanded(
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: chewie,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      children: [
+                        FilledButton(
+                            onPressed: () {
+                              if (channel.website != null) {
+                                launchUrl(Uri.parse(channel.website!));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Could not open the URL.')),
+                                );
+                              }
+                            },
+                            child: const Row(
+                              children: [
+                                Icon(Icons.web),
+                              ],
+                            )),
+                        const SizedBox(
+                          width: 10,
                         ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Row(
+                        FilledButton(
+                            onPressed: () {
+                              context
+                                  .read<ChannelProvider>()
+                                  .previousChannel();
+                            },
+                            child: const Row(
+                              children: [
+                                Icon(Icons.skip_previous),
+                                Text('Prev'),
+                              ],
+                            )),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        FilledButton(
+                            onPressed: () {
+                              context.read<ChannelProvider>().nextChannel();
+                            },
+                            child: const Row(
+                              children: [
+                                Text('Next'),
+                                Icon(Icons.skip_next),
+                              ],
+                            )),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        FilledButton(
+                            autofocus: true,
+                            onPressed: () {
+                              setState(() {
+                                isFullscreen = true;
+                              });
+                              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+                            },
+                            child: const Icon(Icons.fullscreen))
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
                         children: [
-                          FilledButton(
-                              onPressed: () {
-                                context
-                                    .read<ChannelProvider>()
-                                    .previousChannel();
-                              },
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.skip_previous),
-                                  Text('Prev'),
-                                ],
-                              )),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          FilledButton(
-                              onPressed: () {
-                                context.read<ChannelProvider>().nextChannel();
-                              },
-                              child: const Row(
-                                children: [
-                                  Text('Next'),
-                                  Icon(Icons.skip_next),
-                                ],
-                              )),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          FilledButton(
-                              autofocus: true,
-                              onPressed: () {
-                                setState(() {
-                                  isFullscreen = true;
-                                });
-                              },
-                              child: const Icon(Icons.fullscreen))
+                          Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
+                          const SizedBox(height: 10,),
+                          Visibility(
+                              visible: desc != null,
+                              replacement: const LinearProgressIndicator(),
+                              child: MarkdownBody(data: desc ?? '')),
                         ],
-                      )
-                    ],
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Expanded(
-                      child: Visibility(
-                          visible: desc != null,
-                          replacement: const LinearProgressIndicator(),
-                          child: MarkdownBody(data: desc ?? '')))
-                ],
-              ),
+                      ),
+                    )),
+                const SizedBox(
+                  width: 20,
+                ),
+              ],
             ),
           );
   }

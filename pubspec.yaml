@@ -50,6 +50,7 @@ dependencies:
   ffmpeg_kit_flutter: 6.0.3-LTS
   flutter_gemini: ^2.0.5
   flutter_markdown: ^0.7.4+2
+  url_launcher: ^6.1.7
 
 dev_dependencies:
   flutter_test:
