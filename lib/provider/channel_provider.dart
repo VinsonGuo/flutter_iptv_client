@@ -183,18 +183,34 @@ class ChannelProvider with ChangeNotifier {
   void setCurrentChannel(Channel? channel) {
     currentChannel = channel;
     notifyListeners();
-    generateDescription(channel?.id);
+    if (channel?.id != null) {
+      generateDescription(channel!.id);
+    }
   }
 
-  Future<void> generateDescription(String? channelId) async {
+  Future<void> generateDescription(String channelId) async {
     try {
       currentDescription = null;
       if (currentChannel == null) {
         return;
       }
-      final prompt = "Can you give me a general introduction of TV channel called ${currentChannel!.name}? And then give me more details about this channel?";
-      final response = await Gemini.instance.text(prompt, modelName: 'models/gemini-1.5-flash');
-      final desc = response!.content!.parts!.last.text;
+      final dir = await getApplicationDocumentsDirectory();
+      final descFile = File('${dir.path}/desc/$channelId.md');
+      logger.i('descFile file path: ${descFile.path}');
+      String? desc;
+      if (!descFile.existsSync()) {
+        final prompt = "Can you give me a general introduction of TV channel called ${currentChannel!
+            .name}? And then give me more details about this channel?";
+        final response = await Gemini.instance.text(
+            prompt, modelName: 'models/gemini-1.5-flash');
+        desc = response!.content!.parts!.last.text;
+        if (desc != null) {
+          await descFile.create(recursive: true);
+          descFile.writeAsString(desc);
+        }
+      } else {
+        desc = await descFile.readAsString();
+      }
       logger.i('channel $channelId desc is: $desc');
       if (currentChannel!.id == channelId) {
         currentDescription = desc;
