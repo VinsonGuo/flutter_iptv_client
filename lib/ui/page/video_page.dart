@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -141,7 +142,21 @@ class _VideoPageState extends State<VideoPage> {
           )
         : Scaffold(
             appBar: AppBar(
-              title: Text(channel.name),
+              title: Row(
+                children: [
+                  CachedNetworkImage(
+                    width: 60,
+                    height: 40,
+                    imageUrl: channel.logo ?? '',
+                    errorWidget: (_, __, ___) => const Icon(
+                      Icons.error,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: 10,),
+                  Text(channel.name),
+                ],
+              ),
               actions: [
                 IconButton(
                     focusColor: Colors.grey,
@@ -158,6 +173,7 @@ class _VideoPageState extends State<VideoPage> {
             ),
             body: SingleChildScrollView(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(
                     width: 20,
@@ -189,7 +205,7 @@ class _VideoPageState extends State<VideoPage> {
                                 ],
                               )),
                           const SizedBox(
-                            width: 20,
+                            width: 10,
                           ),
                           FilledButton(
                               onPressed: () {
@@ -201,6 +217,17 @@ class _VideoPageState extends State<VideoPage> {
                                   Icon(Icons.skip_next),
                                 ],
                               )),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          FilledButton(
+                              autofocus: true,
+                              onPressed: () {
+                                setState(() {
+                                  isFullscreen = true;
+                                });
+                              },
+                              child: const Icon(Icons.fullscreen))
                         ],
                       )
                     ],
@@ -209,42 +236,10 @@ class _VideoPageState extends State<VideoPage> {
                     width: 20,
                   ),
                   Expanded(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      UnconstrainedBox(
-                        child: FilledButton(
-                            autofocus: true,
-                            onPressed: () {
-                              setState(() {
-                                isFullscreen = true;
-                              });
-                            },
-                            child: const Row(
-                              children: [
-                                Icon(Icons.fullscreen),
-                                Text('FullScreen'),
-                              ],
-                            )),
-                      ),
-                      const Divider(),
-                      CachedNetworkImage(
-                        width: 120,
-                        height: 80,
-                        imageUrl: channel.logo ?? '',
-                        errorWidget: (_, __, ___) => const Icon(
-                          Icons.error,
-                          size: 24,
-                        ),
-                      ),
-                      Text(channel.name),
-                      Text('Country:\t' + (channel.country ?? 'Unknown')),
-                      Text('Language:\t' + channel.languages.join(',')),
-                      Text('Category:\t' + channel.categories.join(',')),
-                      Text('Website:\t' + (channel.website ?? 'Unknown')),
-                    ],
-                  ))
+                      child: Visibility(
+                          visible: channel.description != null,
+                          replacement: const LinearProgressIndicator(),
+                          child: MarkdownBody(data: channel.description ?? '')))
                 ],
               ),
             ),
@@ -256,6 +251,5 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
     videoPlayerController?.dispose();
     chewieController?.dispose();
-    context.read<ChannelProvider>().setCurrentChannel(null);
   }
 }

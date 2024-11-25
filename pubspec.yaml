@@ -48,6 +48,8 @@ dependencies:
   carousel_slider: ^4.2.1
   tv_channel_widget: ^0.0.1
   ffmpeg_kit_flutter: 6.0.3-LTS
+  flutter_gemini: ^2.0.5
+  flutter_markdown: ^0.7.4+2
 
 dev_dependencies:
   flutter_test:

@@ -14,7 +14,8 @@ class Channel {
     required this.languages,
     required this.country,
     required this.website,
-    required this.isFavorite
+    required this.isFavorite,
+    required this.description,
   });
 
   String id;
@@ -29,6 +30,7 @@ class Channel {
   String? website;
   @JsonKey(defaultValue: false)
   bool isFavorite;
+  String? description;
 
 
   factory Channel.fromJson(Map<String, dynamic> json) => _$ChannelFromJson(json);
@@ -45,6 +47,7 @@ class Channel {
     String? country,
     String? website,
     bool? isFavorite,
+    String? description,
   }) {
     return Channel(
       id: id ?? this.id,
@@ -56,6 +59,7 @@ class Channel {
       country: country ?? this.country,
       website: website ?? this.website,
       isFavorite: isFavorite ?? this.isFavorite,
+      description: description ?? this.description,
     );
   }
 }

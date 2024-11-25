@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_dio.dart';
@@ -178,9 +179,28 @@ class ChannelProvider with ChangeNotifier {
     sharedPreferences.setStringList(favoriteListKey, favoriteList);
   }
 
-  void setCurrentChannel(Channel? channel) {
+  void setCurrentChannel(Channel? channel) async {
     currentChannel = channel;
+    if (channel == null) {
+      return;
+    }
     notifyListeners();
+
+    if (currentChannel != null && currentChannel!.description == null) {
+      try {
+        final channelId = currentChannel!.id;
+        final prompt = 'Can you introduce TV Channel of ${currentChannel!.name}? This is its basic information: Country: ${currentChannel!.country}, language: ${currentChannel!.languages.join(',')}, category: ${currentChannel!.categories.join(',')}, website: ${currentChannel!.website}';
+        final response = await Gemini.instance.text(prompt, modelName: 'models/gemini-1.5-flash');
+        final desc = response!.content!.parts!.last.text;
+        logger.i('channel ${currentChannel!.name} desc is: $desc');
+        if (currentChannel!.id == channelId) {
+          currentChannel = currentChannel!.copyWith(description: desc);
+          notifyListeners();
+        }
+      } catch (e) {
+        logger.e('gemini error', error: e);
+      }
+    }
   }
 
   bool previousChannel() {
