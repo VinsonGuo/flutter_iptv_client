@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
     final country = context.select((ChannelProvider value) => value.country);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Global TV'),
+        title: Image.asset('assets/images/ic_banner.png', width: 120, height: 60,),
         actions: [
           IconButton(
             focusColor: Colors.grey,
