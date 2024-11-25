@@ -1,4 +1,4 @@
-package com.vinsonguo.flutter_iptv_client.flutter_iptv_client
+package com.vinsonguo.flutter_iptv_client
 
 import io.flutter.embedding.android.FlutterActivity
 
