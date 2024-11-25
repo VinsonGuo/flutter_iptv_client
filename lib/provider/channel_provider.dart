@@ -20,6 +20,7 @@ class ChannelProvider with ChangeNotifier {
   List<Channel> allChannels = [];
   List<String> favoriteList = [];
   Channel? currentChannel;
+  String? currentDescription;
   String category = 'all';
   String country = 'all';
   bool filterValidChannel = true;
@@ -179,27 +180,28 @@ class ChannelProvider with ChangeNotifier {
     sharedPreferences.setStringList(favoriteListKey, favoriteList);
   }
 
-  void setCurrentChannel(Channel? channel) async {
+  void setCurrentChannel(Channel? channel) {
     currentChannel = channel;
-    if (channel == null) {
-      return;
-    }
     notifyListeners();
+    generateDescription(channel?.id);
+  }
 
-    if (currentChannel != null && currentChannel!.description == null) {
-      try {
-        final channelId = currentChannel!.id;
-        final prompt = 'Can you introduce TV Channel of ${currentChannel!.name}? This is its basic information: Country: ${currentChannel!.country}, language: ${currentChannel!.languages.join(',')}, category: ${currentChannel!.categories.join(',')}, website: ${currentChannel!.website}';
-        final response = await Gemini.instance.text(prompt, modelName: 'models/gemini-1.5-flash');
-        final desc = response!.content!.parts!.last.text;
-        logger.i('channel ${currentChannel!.name} desc is: $desc');
-        if (currentChannel!.id == channelId) {
-          currentChannel = currentChannel!.copyWith(description: desc);
-          notifyListeners();
-        }
-      } catch (e) {
-        logger.e('gemini error', error: e);
+  Future<void> generateDescription(String? channelId) async {
+    try {
+      currentDescription = null;
+      if (currentChannel == null) {
+        return;
       }
+      final prompt = "Can you give me a general introduction of TV channel called ${currentChannel!.name}? And then give me more details about this channel?";
+      final response = await Gemini.instance.text(prompt, modelName: 'models/gemini-1.5-flash');
+      final desc = response!.content!.parts!.last.text;
+      logger.i('channel $channelId desc is: $desc');
+      if (currentChannel!.id == channelId) {
+        currentDescription = desc;
+        notifyListeners();
+      }
+    } catch (e) {
+      logger.e('gemini error', error: e);
     }
   }
 

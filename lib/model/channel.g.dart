@@ -22,7 +22,6 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       country: json['country'] as String?,
       website: json['website'] as String?,
       isFavorite: json['isFavorite'] as bool? ?? false,
-      description: json['description'] as String?,
     );
 
 Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
@@ -35,5 +34,4 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
       'country': instance.country,
       'website': instance.website,
       'isFavorite': instance.isFavorite,
-      'description': instance.description,
     };

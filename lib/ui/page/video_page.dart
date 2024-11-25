@@ -28,6 +28,7 @@ class _VideoPageState extends State<VideoPage> {
   Widget build(BuildContext context) {
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
+    final desc = context.select((ChannelProvider value) => value.currentDescription);
     logger.i('video url is ${channel.url}');
     if (lastUrl != channel.url) {
       videoPlayerController?.dispose();
@@ -237,9 +238,9 @@ class _VideoPageState extends State<VideoPage> {
                   ),
                   Expanded(
                       child: Visibility(
-                          visible: channel.description != null,
+                          visible: desc != null,
                           replacement: const LinearProgressIndicator(),
-                          child: MarkdownBody(data: channel.description ?? '')))
+                          child: MarkdownBody(data: desc ?? '')))
                 ],
               ),
             ),
