@@ -14,7 +14,7 @@
 
 ### Prerequisites
 
-- Flutter 3.19.5
+- Flutter `3.19.6`
 - Create `.env` in project root, and then set `GEMINI_KEY=YOUR GEMINI KEY`
 
 ### Run
