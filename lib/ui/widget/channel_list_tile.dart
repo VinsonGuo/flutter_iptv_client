@@ -48,8 +48,13 @@ class _ChannelListTileState extends State<ChannelListTile> {
         context
             .read<ChannelProvider>()
             .setCurrentChannel(widget.item);
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const VideoPage()));
+        if (url == null || url.isEmpty) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text("This channel can't be played now")));
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => const VideoPage()));
+        }
       },
       onLongPress: () {
         context
