@@ -1,6 +1,6 @@
-# Global TV 🌍📺
+# UniTV 🌍📺
 
-**Global TV** is a Flutter-based application that allows users to watch TV channels from any country. The app provides a seamless experience with features like cached images, video playback, and an intuitive user interface.
+**UniTV** is a Flutter-based application that allows users to watch TV channels from any country. The app provides a seamless experience with features like cached images, video playback, and an intuitive user interface.
 
 ---
 

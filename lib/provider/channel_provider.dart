@@ -229,7 +229,7 @@ class ChannelProvider with ChangeNotifier {
       logger.i('descFile file path: ${descFile.path}');
       String? desc;
       if (!descFile.existsSync()) {
-        final prompt = "Can you give me a general introduction of TV channel called ${currentChannel!
+        final prompt = "Can you give me a general introduction of TV channel in ${currentChannel!.country} called ${currentChannel!
             .name}? And then give me more details about this channel?";
         final response = await Gemini.instance.text(
             prompt, modelName: 'models/gemini-1.5-flash');
