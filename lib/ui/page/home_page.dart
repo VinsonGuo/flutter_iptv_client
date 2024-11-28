@@ -1,16 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/data.dart';
-import 'package:flutter_iptv_client/model/channel.dart';
-import 'package:flutter_iptv_client/model/m3u8_entry.dart';
-import 'package:flutter_iptv_client/ui/page/import_page.dart';
 import 'package:flutter_iptv_client/ui/page/country_page.dart';
-import 'package:flutter_iptv_client/ui/page/video_page.dart';
+import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_iptv_client/ui/widget/channel_search_delegate.dart';
-import 'package:flutter_iptv_client/ui/widget/m3u8_thumbnail.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../provider/channel_provider.dart';
 import '../widget/channel_list_tile.dart';
@@ -43,10 +36,12 @@ class _HomePageState extends State<HomePage> {
     final country = context.select((ChannelProvider value) => value.country);
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset('assets/images/ic_banner.png', width: 120, height: 60,),
+        leading: Image.asset('assets/images/ic_banner.png', width: 120, height: 60,),
+        leadingWidth: 120,
+        title: const AdMobWidget(),
+        centerTitle: true,
         actions: [
           IconButton(
-            focusColor: Colors.grey,
               onPressed: () {
                 Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const CountryPage()));
@@ -60,7 +55,6 @@ class _HomePageState extends State<HomePage> {
                       height: 28,
                     )),
           IconButton(
-            focusColor: Colors.grey,
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
@@ -70,7 +64,6 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            focusColor: Colors.grey,
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<ChannelProvider>().getChannels();

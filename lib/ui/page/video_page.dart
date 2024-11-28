@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
+import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -22,12 +23,14 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   ChewieController? chewieController;
   VideoPlayerController? videoPlayerController;
+  late ScrollController scrollController;
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
 
   @override
   Widget build(BuildContext context) {
+    scrollController = ScrollController();
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
     final desc = context.select((ChannelProvider value) => value.currentDescription);
@@ -89,8 +92,8 @@ class _VideoPageState extends State<VideoPage> {
     final chewie = Chewie(
       controller: chewieController!,
     );
-    return isFullscreen
-        ? PopScope(
+    if (isFullscreen) {
+      return PopScope(
             canPop: !isFullscreen,
             onPopInvoked: (didPop) {
               if (didPop) {
@@ -143,27 +146,14 @@ class _VideoPageState extends State<VideoPage> {
                 ),
               ),
             ),
-          )
-        : Scaffold(
+          );
+    } else {
+      return Scaffold(
             appBar: AppBar(
-              title: Row(
-                children: [
-                  CachedNetworkImage(
-                    width: 60,
-                    height: 40,
-                    imageUrl: channel.logo ?? '',
-                    errorWidget: (_, __, ___) => const Icon(
-                      Icons.error,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 10,),
-                  Text(channel.name),
-                ],
-              ),
+              title: const AdMobWidget(),
+              centerTitle: true,
               actions: [
                 IconButton(
-                    focusColor: Colors.grey,
                     onPressed: () {
                       context
                           .read<ChannelProvider>()
@@ -260,15 +250,58 @@ class _VideoPageState extends State<VideoPage> {
                   width: 20,
                 ),
                 Expanded(
-                  child: ListView(
-                      children: [
-                        Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
-                        const SizedBox(height: 10,),
-                        Visibility(
-                            visible: desc != null,
-                            replacement: const LinearProgressIndicator(),
-                            child: MarkdownBody(data: desc ?? '')),
-                      ],
+                  child: Focus(
+                    onKeyEvent: (_, event) {
+                      if (event is KeyDownEvent) {
+                        if (scrollController.offset > 0
+                            && event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                          scrollController.animateTo(
+                            scrollController.offset - 50,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
+                          );
+                          return KeyEventResult.handled;
+                        }
+                        if (scrollController.offset < scrollController.position.maxScrollExtent
+                            && event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                          scrollController.animateTo(
+                            scrollController.offset + 50,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
+                          );
+                          return KeyEventResult.handled;
+                        }
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: ListView(
+                      controller: scrollController,
+                        children: [
+                          Row(children: [
+                            Container(
+                              width: 60,
+                              height: 40,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              child: CachedNetworkImage(
+                                imageUrl: channel.logo ?? '',
+                                errorWidget: (_, __, ___) => const Icon(
+                                  Icons.error,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10,),
+                            Text(channel.name, style: Theme.of(context).textTheme.titleLarge,),
+                          ],),
+                          const SizedBox(height: 10,),
+                          Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
+                          const SizedBox(height: 10,),
+                          Visibility(
+                              visible: desc != null,
+                              replacement: const LinearProgressIndicator(),
+                              child: MarkdownBody(data: desc ?? '')),
+                        ],
+                    ),
                   )),
                 const SizedBox(
                   width: 20,
@@ -276,6 +309,7 @@ class _VideoPageState extends State<VideoPage> {
               ],
             ),
           );
+    }
   }
 
   @override
@@ -283,5 +317,6 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
     videoPlayerController?.dispose();
     chewieController?.dispose();
+    scrollController.dispose();
   }
 }

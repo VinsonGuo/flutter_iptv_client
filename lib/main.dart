@@ -7,6 +7,7 @@ import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_preference.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ui/page/home_page.dart';
 import 'provider/channel_provider.dart';
@@ -23,6 +24,7 @@ void main() async {
   ]);
   await dotenv.load();
   Gemini.init(apiKey: dotenv.env['GEMINI_KEY']!);
+  MobileAds.instance.initialize();
   runApp(const MyApp());
 }
 
@@ -41,6 +43,16 @@ class MyApp extends StatelessWidget {
           title: 'IPTV Player',
           themeMode: ThemeMode.dark,
           theme: ThemeData(
+            iconButtonTheme: IconButtonThemeData(
+              style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.all(Colors.grey)
+              )
+            ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.all(const Color(0x66000000))
+              )
+            ),
             colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.deepPurple, brightness: Brightness.dark),
             useMaterial3: true,
