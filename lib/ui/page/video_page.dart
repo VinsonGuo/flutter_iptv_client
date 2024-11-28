@@ -1,15 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chewie/chewie.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../provider/channel_provider.dart';
 
@@ -27,6 +26,12 @@ class _VideoPageState extends State<VideoPage> {
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +320,7 @@ class _VideoPageState extends State<VideoPage> {
   @override
   void dispose() {
     super.dispose();
+    WakelockPlus.disable();
     videoPlayerController?.dispose();
     chewieController?.dispose();
     scrollController.dispose();
