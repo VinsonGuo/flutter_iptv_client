@@ -1,7 +1,8 @@
 # UniTV 🌍📺
 
-**UniTV** is a Flutter-based application that allows users to watch TV channels from any country. The app provides a seamless experience with features like cached images, video playback, and an intuitive user interface.
+**UniTV** is a Flutter-based application that allows users to watch TV channels from any country. The app provides a seamless experience with features like remote-control integration, video playback, and an intuitive user interface.
 
+[Google Play](https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_iptv_client)
 ---
 
 ## 📱 Features
