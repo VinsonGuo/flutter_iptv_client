@@ -261,7 +261,7 @@ class _VideoPageState extends State<VideoPage> {
                         if (scrollController.offset > 0
                             && event.logicalKey == LogicalKeyboardKey.arrowUp) {
                           scrollController.animateTo(
-                            scrollController.offset - 50,
+                            scrollController.offset - 100,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOut,
                           );
@@ -270,7 +270,7 @@ class _VideoPageState extends State<VideoPage> {
                         if (scrollController.offset < scrollController.position.maxScrollExtent
                             && event.logicalKey == LogicalKeyboardKey.arrowDown) {
                           scrollController.animateTo(
-                            scrollController.offset + 50,
+                            scrollController.offset + 100,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOut,
                           );
