@@ -65,8 +65,9 @@ class _VideoPageState extends State<VideoPage> {
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.landscapeRight
           ],
-          errorBuilder: (_, msg) => const Center(
-                child: Column(
+          errorBuilder: (_, msg) => Container(
+                padding: const EdgeInsets.all(10),
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(

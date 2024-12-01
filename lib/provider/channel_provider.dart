@@ -40,31 +40,32 @@ class ChannelProvider with ChangeNotifier {
     sharedPreferences.setString(m3u8UrlKey, url);
     final result = await getChannels();
     if (result) {
-      selectCountry(country: 'all');
+      resetFilter();
+    } else {
+      sharedPreferences.setString(m3u8UrlKey, currentUrl ?? m3u8Url);
     }
     return result;
   }
 
   Future<bool> getChannels() async {
+    var result = true;
     loading = true;
     notifyListeners();
     favoriteList = sharedPreferences.getStringList(favoriteListKey) ?? [];
     country = sharedPreferences.getString(countryKey) ?? 'all';
-      try {
-        final url = sharedPreferences.getString(m3u8UrlKey) ?? m3u8Url;
-        currentUrl = url;
-        final response = await sharedDio.get(url);
-        if (response.isSuccess) {
-          String m3uContent = response.data.toString();
-          await _parseChannels(m3uContent);
-        }
-      } catch (e) {
-        logger.e('getChannels failed', error: e);
-        return false;
-      }
+    try {
+      final url = sharedPreferences.getString(m3u8UrlKey) ?? m3u8Url;
+      final response = await sharedDio.get(url);
+      String m3uContent = response.data.toString();
+      await _parseChannels(m3uContent);
+      currentUrl = url;
+    } catch (e) {
+      logger.e('getChannels failed', error: e);
+      result = false;
+    }
     loading = false;
     notifyListeners();
-    return true;
+    return result;
   }
 
   Future<void> _parseChannels(String m3uContent) async {
@@ -118,6 +119,16 @@ class ChannelProvider with ChangeNotifier {
           .toList();
     }
     return channelList;
+  }
+
+  void resetFilter() async {
+    const all = 'all';
+    sharedPreferences.setString(countryKey, all);
+    country = all;
+    category = all;
+    var channelList = _filterChannel();
+    channels = await channelList;
+    notifyListeners();
   }
 
   void selectCountry({String country = 'all'}) async {
