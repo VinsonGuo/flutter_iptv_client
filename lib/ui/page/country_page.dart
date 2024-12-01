@@ -20,17 +20,21 @@ class CountryPage extends StatelessWidget {
             selected: language == item,
             selectedTileColor: Theme.of(context).colorScheme.onPrimary,
             selectedColor: Theme.of(context).colorScheme.primary,
-            title: item == 'all'
-                ? const Icon(
-                    Icons.language,
-                    size: 48,
-                  )
-                : Image.asset(
-                    'assets/images/flags/${item.toLowerCase()}.png',
-                    height: 48,
-                  ),
+            title: Builder(
+              builder: (context) {
+                Widget icon;
+                if (item == 'all') {
+                  icon = const Icon(Icons.language, size: 48,);
+                } else if (item == 'unknown') {
+                  icon = const Icon(Icons.question_mark, size: 48,);
+                } else {
+                  icon = Image.asset('assets/images/flags/${item.toLowerCase()}.png', height: 48,);
+                }
+                return icon;
+              }
+            ),
             subtitle: Text(
-              item,
+              item.toUpperCase(),
               textAlign: TextAlign.center,
             ),
             onTap: () {

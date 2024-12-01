@@ -9,6 +9,7 @@
 
 - Watch TV channels from all over the world.
 - Smooth video playback with advanced video controls.
+- Support import online m3u8 playlist url.
 - Gemini AI to generate channel description.
 
 ## 🚀 Getting Started

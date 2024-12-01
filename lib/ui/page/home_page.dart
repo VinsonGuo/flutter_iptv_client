@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/ui/page/country_page.dart';
+import 'package:flutter_iptv_client/ui/page/settings_page.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_iptv_client/ui/widget/channel_search_delegate.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late ScrollController scrollController;
+  ChannelSearchDelegate delegate = ChannelSearchDelegate();
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _HomePageState extends State<HomePage> {
     final channels = context.select((ChannelProvider value) => value.channels);
     final loading = context.select((ChannelProvider value) => value.loading);
     final allChannels = context.select((ChannelProvider value) => value.allChannels);
+    final allCategories = context.select((ChannelProvider value) => value.allCategories);
     final category = context.select((ChannelProvider value) => value.category);
     final country = context.select((ChannelProvider value) => value.country);
     return Scaffold(
@@ -46,20 +49,26 @@ class _HomePageState extends State<HomePage> {
                 Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const CountryPage()));
               },
-              icon: country == 'all'
-                  ? const Icon(
-                      Icons.language,
-                    )
-                  : Image.asset(
-                      'assets/images/flags/${country.toLowerCase()}.png',
-                      height: 28,
-                    )),
+              icon: Builder(
+                  builder: (context) {
+                    Widget icon;
+                    if (country == 'all') {
+                      icon = const Icon(Icons.language);
+                    } else if (country == 'unknown') {
+                      icon = const Icon(Icons.question_mark);
+                    } else {
+                      icon = Image.asset('assets/images/flags/${country.toLowerCase()}.png', height: 24,);
+                    }
+                    return icon;
+                  }
+              )
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
               showSearch(
                 context: context,
-                delegate: ChannelSearchDelegate(),
+                delegate: delegate,
               );
             },
           ),
@@ -68,7 +77,14 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               context.read<ChannelProvider>().getChannels();
             },
-          )
+          ),
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsPage()));
+              },
+              icon: const Icon(Icons.settings,)
+          ),
         ],
       ),
       body: Row(
@@ -78,7 +94,7 @@ class _HomePageState extends State<HomePage> {
             height: double.infinity,
             child: ListView.builder(
               itemBuilder: (_, index) {
-                final item = channelCategories[index];
+                final item = allCategories[index];
                 return ListTile(
                   autofocus: category == item,
                   title: Text(item.toUpperCase()),
@@ -93,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 );
               },
-              itemCount: channelCategories.length,
+              itemCount: allCategories.length,
             ),
           ),
           Expanded(

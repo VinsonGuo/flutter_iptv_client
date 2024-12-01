@@ -26,7 +26,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
       child: !_isLoaded
           ? const SizedBox.shrink()
           : SizedBox(
-              width: MediaQuery.of(context).size.width / 2,
+              width: MediaQuery.of(context).size.width / 2.5,
               height: 40,
               child: AdWidget(ad: _bannerAd!)),
     );
@@ -36,7 +36,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
     _bannerAd = BannerAd(
       adUnitId: 'ca-app-pub-1990824556833029/8865250198',
       request: const AdRequest(),
-      size: AdSize(width: MediaQuery.of(context).size.width ~/ 2, height: 40),
+      size: AdSize(width: MediaQuery.of(context).size.width ~/ 2.5, height: 40),
       listener: BannerAdListener(
         // Called when an ad is successfully received.
         onAdLoaded: (ad) {

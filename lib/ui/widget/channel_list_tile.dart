@@ -63,15 +63,20 @@ class _ChannelListTileState extends State<ChannelListTile> {
       },
       child: Builder(builder: (context) {
         final hasFocus = Focus.of(context).hasFocus;
-        final gradient = hasFocus
-            ? [
-                Theme.of(context).colorScheme.primary.withAlpha(150),
-                Theme.of(context).colorScheme.tertiary.withAlpha(150)
-              ]
-            : [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.tertiary
-              ];
+        final List<Color> gradient;
+        if (url == null) {
+          gradient = [Colors.grey, Colors.grey];
+        } else if (hasFocus) {
+          gradient = [
+            Theme.of(context).colorScheme.primary.withAlpha(150),
+            Theme.of(context).colorScheme.tertiary.withAlpha(150)
+          ];
+        } else {
+          gradient = [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.tertiary
+          ];
+        }
         return Container(
           decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10)),

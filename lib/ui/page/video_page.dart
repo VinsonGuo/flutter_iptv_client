@@ -65,18 +65,18 @@ class _VideoPageState extends State<VideoPage> {
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.landscapeRight
           ],
-          errorBuilder: (_, msg) => Center(
+          errorBuilder: (_, msg) => const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.error,
                       size: 24,
                     ),
-                    const SizedBox(
+                    SizedBox(
                       height: 6,
                     ),
-                    Text(msg),
+                    Text("Current channel is not available for playback. Please refresh or import your custom playlist URL"),
                   ],
                 ),
               ),
@@ -282,8 +282,9 @@ class _VideoPageState extends State<VideoPage> {
                     child: ListView(
                       controller: scrollController,
                         children: [
-                          Row(children: [
-                            Container(
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(0),
+                            leading: Container(
                               width: 60,
                               height: 40,
                               color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -295,9 +296,8 @@ class _VideoPageState extends State<VideoPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10,),
-                            Text(channel.name, style: Theme.of(context).textTheme.titleLarge,),
-                          ],),
+                            title: Text(channel.name, style: Theme.of(context).textTheme.titleLarge,),
+                          ),
                           const SizedBox(height: 10,),
                           Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
                           const SizedBox(height: 10,),

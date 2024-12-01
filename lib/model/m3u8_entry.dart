@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter_iptv_client/common/logger.dart';
+import 'package:flutter_iptv_client/model/channel.dart';
 
 class M3U8Entry {
   final String tvgId;
@@ -27,6 +26,17 @@ group-title: $groupTitle
 URL: $url
 ''';
   }
+
+  Channel toChannel() => Channel(
+      id: tvgId.isEmpty ? title : tvgId,
+      name: title,
+      logo: tvgLogo,
+      url: url,
+      categories: [groupTitle.toLowerCase()],
+      languages: [],
+      country: 'unknown',
+      website: '',
+      isFavorite: false);
 }
 
 List<M3U8Entry> parseM3U8(String content) {
@@ -47,18 +57,18 @@ List<M3U8Entry> parseM3U8(String content) {
             .toList();
         currentTvgId = attributes
             .firstWhere((attr) => attr.key == 'tvg-id',
-            orElse: () => const MapEntry('', ''))
+                orElse: () => const MapEntry('', ''))
             .value;
         currentTvgLogo = attributes
             .firstWhere((attr) => attr.key == 'tvg-logo',
-            orElse: () => const MapEntry('', ''))
+                orElse: () => const MapEntry('', ''))
             .value;
         currentGroupTitle = attributes
             .firstWhere((attr) => attr.key == 'group-title',
-            orElse: () => const MapEntry('', ''))
+                orElse: () => const MapEntry('', ''))
             .value;
 
-        final titleMatch = RegExp(r',(.+)$').firstMatch(line);
+        final titleMatch = RegExp(r',([^,]+)$').firstMatch(line);
         currentTitle = titleMatch?.group(1) ?? '';
       } else if (!line.startsWith('#') && line.isNotEmpty) {
         entries.add(M3U8Entry(
@@ -75,7 +85,7 @@ List<M3U8Entry> parseM3U8(String content) {
         currentGroupTitle = null;
         currentTitle = null;
       }
-    } catch(t, s) {
+    } catch (t, s) {
       logger.e("line $line parse failed", error: t, stackTrace: s);
     }
   }
