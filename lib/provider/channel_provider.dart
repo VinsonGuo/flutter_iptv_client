@@ -18,6 +18,7 @@ class ChannelProvider with ChangeNotifier {
   List<Channel> allChannels = [];
   List<Channel> searchResultChannels = [];
   List<String> favoriteList = [];
+  List<String> m3u8UrlList = [];
   List<String> allCategories = ['favorite', 'all'];
   Channel? currentChannel;
   String? currentDescription;
@@ -28,9 +29,10 @@ class ChannelProvider with ChangeNotifier {
   static const favoriteListKey = 'favoriteListKey';
   static const countryKey = 'countryKey';
   static const m3u8UrlKey = 'm3u8UrlKey';
+  static const m3u8UrlListKey = 'm3u8UrlListKey';
 
   Future<void> resetM3UContent() async {
-    await importFromUrl(m3u8Url);
+    await importFromUrl(defaultM3u8Url);
   }
 
   Future<bool> importFromUrl(String url) async {
@@ -41,10 +43,24 @@ class ChannelProvider with ChangeNotifier {
     final result = await getChannels();
     if (result) {
       resetFilter();
+      if (!m3u8UrlList.contains(url)) {
+        m3u8UrlList.add(url);
+        sharedPreferences.setStringList(m3u8UrlListKey, m3u8UrlList);
+        notifyListeners();
+      }
     } else {
-      sharedPreferences.setString(m3u8UrlKey, currentUrl ?? m3u8Url);
+      sharedPreferences.setString(m3u8UrlKey, currentUrl ?? defaultM3u8Url);
     }
     return result;
+  }
+
+  void deleteM3u8Url(String url) {
+    final copiedList = m3u8UrlList.toList();
+    if (copiedList.remove(url)) {
+      m3u8UrlList = copiedList;
+      sharedPreferences.setStringList(m3u8UrlListKey, copiedList);
+      notifyListeners();
+    }
   }
 
   Future<bool> getChannels() async {
@@ -53,8 +69,9 @@ class ChannelProvider with ChangeNotifier {
     notifyListeners();
     favoriteList = sharedPreferences.getStringList(favoriteListKey) ?? [];
     country = sharedPreferences.getString(countryKey) ?? 'all';
+    m3u8UrlList = sharedPreferences.getStringList(m3u8UrlListKey) ?? [defaultM3u8Url];
     try {
-      final url = sharedPreferences.getString(m3u8UrlKey) ?? m3u8Url;
+      final url = sharedPreferences.getString(m3u8UrlKey) ?? defaultM3u8Url;
       final response = await sharedDio.get(url);
       String m3uContent = response.data.toString();
       await _parseChannels(m3uContent);

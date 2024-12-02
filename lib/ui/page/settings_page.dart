@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
@@ -12,14 +13,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late TextEditingController textEditingController;
   String appName = '';
   String version = '';
 
   @override
   void initState() {
     super.initState();
-    textEditingController = TextEditingController();
     PackageInfo.fromPlatform().then((value) {
       setState(() {
         appName = value.appName;
@@ -30,66 +29,33 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<ChannelProvider>();
     final currentUrl =
         context.select((ChannelProvider value) => value.currentUrl);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
+      body: Stack(
         children: [
+          ListView(
+            children: [
+              ListTile(
+                title: const Text('Select m3u8 url'),
+                subtitle: Text('current url: $currentUrl'),
+                onTap: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SelectM3u8Page()));
+                },
+              ),
+              AboutListTile(
+                applicationName: appName,
+                applicationVersion: version,
+              ),
+            ],
+          ),
           Visibility(
               visible:
-                  context.select((ChannelProvider value) => value.loading),
+              context.select((ChannelProvider value) => value.loading),
               replacement: const SizedBox(height: 4,),
               child: const LinearProgressIndicator()),
-          ListTile(
-            title: const Text('Import m3u8 playlist url'),
-            subtitle: TextField(
-              controller: textEditingController,
-              autofocus: true,
-            ),
-            trailing: Wrap(children: [
-              FilledButton(
-                  onPressed: () async {
-                    final text = textEditingController.text.trim();
-                    if (await provider.importFromUrl(text)) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Import success')));
-                      }
-                    } else {
-                      if (mounted) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Import failed, please check m3u8 url')));
-                      }
-                    }
-                  },
-                  child: const Text('Import')),
-              const SizedBox(
-                width: 10,
-              ),
-              FilledButton(
-                  onPressed: () async {
-                    await provider.resetM3UContent();
-                    if (mounted) {
-                      ScaffoldMessenger.of(this.context).showSnackBar(
-                          const SnackBar(content: Text('Reset success')));
-                    }
-                  },
-                  child: const Text('Reset')),
-            ],),
-          ),
-          ListTile(
-            title: const Text('Current m3u8 url'),
-            subtitle: Text(currentUrl ?? ''),
-          ),
-          AboutListTile(
-            applicationName: appName,
-            applicationVersion: version,
-          ),
         ],
       ),
     );
@@ -98,6 +64,5 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     super.dispose();
-    textEditingController.dispose();
   }
 }
