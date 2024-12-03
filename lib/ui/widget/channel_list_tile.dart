@@ -93,9 +93,10 @@ class _ChannelListTileState extends State<ChannelListTile> {
                   width: double.infinity,
                   height: double.infinity,
                   imageUrl: widget.item.logo ?? '',
-                  errorWidget: (_, __, ___) => const Icon(
-                    Icons.error,
+                  errorWidget: (_, __, ___) => Icon(
+                    Icons.tv,
                     size: 24,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ),

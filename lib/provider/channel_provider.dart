@@ -20,6 +20,7 @@ class ChannelProvider with ChangeNotifier {
   List<String> favoriteList = [];
   List<String> m3u8UrlList = [];
   List<String> allCategories = ['favorite', 'all'];
+  List<String> allCountries = ['all'];
   Channel? currentChannel;
   String? currentDescription;
   String? currentUrl;
@@ -96,6 +97,7 @@ class ChannelProvider with ChangeNotifier {
     }));
 
     Set<String> categorySet = {};
+    Set<String> countrySet = {};
     for (final entry in m3u8List) {
       var channel = channelMap[entry.tvgId];
       if (channel == null) {
@@ -105,10 +107,14 @@ class ChannelProvider with ChangeNotifier {
       channel.isFavorite = favoriteList.contains(channel.id);
       channel.url = entry.url;
       categorySet.addAll(channel.categories);
+      countrySet.add(channel.country ?? 'uncategorized');
     }
     final categoryList = categorySet.toList();
     categoryList.sort();
     allCategories = ['favorite', 'all'] + categoryList;
+    final countryList = countrySet.toList();
+    countryList.sort();
+    allCountries = ['all'] + countryList;
     allChannels = channelMap.values.where((element) => element.url != null).toList();
     channels = await _filterChannel();
   }

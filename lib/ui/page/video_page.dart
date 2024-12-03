@@ -149,9 +149,10 @@ class _VideoPageState extends State<VideoPage> {
                                 width: 60,
                                 height: 40,
                                 imageUrl: channel.logo ?? '',
-                                errorWidget: (_, __, ___) => const Icon(
-                                  Icons.error,
+                                errorWidget: (_, __, ___) => Icon(
+                                  Icons.tv,
                                   size: 24,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                               Text(channel.name),
@@ -299,9 +300,10 @@ class _VideoPageState extends State<VideoPage> {
                               color: Theme.of(context).colorScheme.onPrimaryContainer,
                               child: CachedNetworkImage(
                                 imageUrl: channel.logo ?? '',
-                                errorWidget: (_, __, ___) => const Icon(
-                                  Icons.error,
+                                errorWidget: (_, __, ___) => Icon(
+                                  Icons.tv,
                                   size: 24,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ),

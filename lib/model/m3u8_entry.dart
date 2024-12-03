@@ -34,7 +34,7 @@ URL: $url
       url: url,
       categories: [groupTitle.toLowerCase()],
       languages: [],
-      country: 'unknown',
+      country: 'uncategorized',
       website: '',
       isFavorite: false);
 }

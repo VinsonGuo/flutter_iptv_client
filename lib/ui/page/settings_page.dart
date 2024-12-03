@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../provider/channel_provider.dart';
 
@@ -45,9 +46,31 @@ class _SettingsPageState extends State<SettingsPage> {
                       MaterialPageRoute(builder: (_) => const SelectM3u8Page()));
                 },
               ),
+              ListTile(
+                onTap: () {
+                  launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_iptv_client"));
+                },
+                title: const Text('Google Play'),
+              ),
+              ListTile(
+                onTap: () {
+                  launchUrl(Uri(
+                    scheme: 'mailto',
+                    path: 'guoziwei93@gmail.com',
+                    queryParameters: {
+                      'subject': 'Feedback for UniTV',
+                    },
+                  ));
+                },
+                title: const Text('Feedback'),
+                subtitle: const Text('guoziwei93@gmail.com'),
+              ),
               AboutListTile(
                 applicationName: appName,
                 applicationVersion: version,
+                aboutBoxChildren: const [
+                  Text("UniTV is a Flutter-based application that allows users to watch 10000+ TV channels from any country. The app provides a seamless experience with features like remote-control integration, import m3u8 playlist, video playback, and an intuitive user interface."),
+                ],
               ),
             ],
           ),

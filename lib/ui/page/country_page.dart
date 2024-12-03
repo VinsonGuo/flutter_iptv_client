@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_iptv_client/common/data.dart';
 import 'package:provider/provider.dart';
 
 import '../../provider/channel_provider.dart';
@@ -10,12 +9,13 @@ class CountryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final language = context.select((ChannelProvider value) => value.country);
+    final allCountries = context.select((ChannelProvider value) => value.allCountries);
     return Scaffold(
       appBar: AppBar(title: const Text('Select Channel Country/Region')),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.width ~/ 100),
         itemBuilder: (_, index) {
-          final item = channelCountries[index];
+          final item = allCountries[index];
           return ListTile(
             selected: language == item,
             selectedTileColor: Theme.of(context).colorScheme.onPrimary,
@@ -25,7 +25,7 @@ class CountryPage extends StatelessWidget {
                 Widget icon;
                 if (item == 'all') {
                   icon = const Icon(Icons.language, size: 48,);
-                } else if (item == 'unknown') {
+                } else if (item == 'uncategorized') {
                   icon = const Icon(Icons.question_mark, size: 48,);
                 } else {
                   icon = Image.asset('assets/images/flags/${item.toLowerCase()}.png', height: 48,);
@@ -43,7 +43,7 @@ class CountryPage extends StatelessWidget {
             },
           );
         },
-        itemCount: channelCountries.length,
+        itemCount: allCountries.length,
       ),
     );
   }

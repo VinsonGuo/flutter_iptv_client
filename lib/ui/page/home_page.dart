@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                     Widget icon;
                     if (country == 'all') {
                       icon = const Icon(Icons.language);
-                    } else if (country == 'unknown') {
+                    } else if (country == 'uncategorized') {
                       icon = const Icon(Icons.question_mark);
                     } else {
                       icon = Image.asset('assets/images/flags/${country.toLowerCase()}.png', height: 24,);
