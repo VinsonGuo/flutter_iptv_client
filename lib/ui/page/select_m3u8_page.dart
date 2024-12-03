@@ -43,26 +43,14 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
                 title: const Text('Import m3u8 playlist url'),
                 subtitle: TextField(
                   controller: textEditingController,
+                  onSubmitted: (_) async {
+                    await onImportPress(provider);
+                  },
                 ),
                 trailing: Wrap(children: [
                   FilledButton(
                       onPressed: () async {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        final text = textEditingController.text.trim();
-                        if (await provider.importFromUrl(text)) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Import success')));
-                          }
-                        } else {
-                          if (mounted) {
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Import failed, please check m3u8 url')));
-                          }
-                        }
+                        await onImportPress(provider);
                       },
                       child: const Text('Import')),
                   const SizedBox(
@@ -112,5 +100,24 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
         ],
       ),
     );
+  }
+
+  Future<void> onImportPress(ChannelProvider provider) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final text = textEditingController.text.trim();
+    if (await provider.importFromUrl(text)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Import success')));
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Import failed, please check m3u8 url')));
+      }
+    }
   }
 }

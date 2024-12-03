@@ -31,11 +31,12 @@ class _VideoPageState extends State<VideoPage> {
   void initState() {
     super.initState();
     WakelockPlus.enable();
+    scrollController = ScrollController();
   }
 
   @override
   Widget build(BuildContext context) {
-    scrollController = ScrollController();
+    final provider = context.read<ChannelProvider>();
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
     final desc = context.select((ChannelProvider value) => value.currentDescription);
@@ -57,6 +58,7 @@ class _VideoPageState extends State<VideoPage> {
           fullScreenByDefault: false,
           showOptions: false,
           allowedScreenSleep: false,
+          allowPlaybackSpeedChanging: false,
           deviceOrientationsAfterFullScreen: [
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.landscapeRight
@@ -67,6 +69,7 @@ class _VideoPageState extends State<VideoPage> {
           ],
           errorBuilder: (_, msg) => Container(
                 padding: const EdgeInsets.all(10),
+                alignment: Alignment.center,
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -85,8 +88,8 @@ class _VideoPageState extends State<VideoPage> {
       setState(() {
         showFullscreenInfo = true;
       });
-      Future.delayed(const Duration(seconds: 5), ).then((value) {
-        if (mounted) {
+      Future.delayed(const Duration(seconds: 5)).then((value) {
+        if (mounted && channel.url == lastUrl) {
           setState(() {
             showFullscreenInfo = false;
           });
@@ -112,43 +115,52 @@ class _VideoPageState extends State<VideoPage> {
                 SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
               }
             },
-            child: KeyboardListener(
-              focusNode: FocusNode(),
-              onKeyEvent: (event) {
-                final key = event.logicalKey;
-                if (key == LogicalKeyboardKey.arrowUp) {
-                  context.read<ChannelProvider>().previousChannel();
-                } else if (key == LogicalKeyboardKey.arrowDown) {
-                  context.read<ChannelProvider>().nextChannel();
+            child: GestureDetector(
+              onHorizontalDragEnd:  (details) {
+                if ((details.primaryVelocity ?? 0) > 0) {
+                  provider.previousChannel();
+                } else if ((details.primaryVelocity ?? 0) < 0) {
+                  provider.nextChannel();
                 }
               },
-              child: Scaffold(
-                body: Stack(
-                  children: [
-                    chewie,
-                    Visibility(
-                      visible: showFullscreenInfo,
-                      child: Align(
-                        alignment: const Alignment(0, 0.9),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            CachedNetworkImage(
-                              width: 60,
-                              height: 40,
-                              imageUrl: channel.logo ?? '',
-                              errorWidget: (_, __, ___) => const Icon(
-                                Icons.error,
-                                size: 24,
+              child: KeyboardListener(
+                focusNode: FocusNode(),
+                onKeyEvent: (event) {
+                  final key = event.logicalKey;
+                  if (key == LogicalKeyboardKey.arrowUp) {
+                    provider.previousChannel();
+                  } else if (key == LogicalKeyboardKey.arrowDown) {
+                    provider.nextChannel();
+                  }
+                },
+                child: Scaffold(
+                  body: Stack(
+                    children: [
+                      chewie,
+                      Visibility(
+                        visible: showFullscreenInfo,
+                        child: Align(
+                          alignment: const Alignment(0, 0.9),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              CachedNetworkImage(
+                                width: 60,
+                                height: 40,
+                                imageUrl: channel.logo ?? '',
+                                errorWidget: (_, __, ___) => const Icon(
+                                  Icons.error,
+                                  size: 24,
+                                ),
                               ),
-                            ),
-                            Text(channel.name),
-                          ],
+                              Text(channel.name),
+                            ],
+                          ),
                         ),
-                      ),
-                    )
-                  ],
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -161,9 +173,7 @@ class _VideoPageState extends State<VideoPage> {
               actions: [
                 IconButton(
                     onPressed: () {
-                      context
-                          .read<ChannelProvider>()
-                          .setFavorite(channel.id, !channel.isFavorite);
+                      provider.setFavorite(channel.id, !channel.isFavorite);
                     },
                     icon: Icon(
                       channel.isFavorite ? Icons.star : Icons.star_border,
@@ -210,9 +220,7 @@ class _VideoPageState extends State<VideoPage> {
                         ),
                         FilledButton(
                             onPressed: () {
-                              context
-                                  .read<ChannelProvider>()
-                                  .previousChannel();
+                              provider.previousChannel();
                             },
                             child: const Row(
                               children: [
@@ -225,7 +233,7 @@ class _VideoPageState extends State<VideoPage> {
                         ),
                         FilledButton(
                             onPressed: () {
-                              context.read<ChannelProvider>().nextChannel();
+                              provider.nextChannel();
                             },
                             child: const Row(
                               children: [
@@ -262,7 +270,7 @@ class _VideoPageState extends State<VideoPage> {
                         if (scrollController.offset > 0
                             && event.logicalKey == LogicalKeyboardKey.arrowUp) {
                           scrollController.animateTo(
-                            scrollController.offset - 100,
+                            scrollController.offset - 200,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOut,
                           );
@@ -271,7 +279,7 @@ class _VideoPageState extends State<VideoPage> {
                         if (scrollController.offset < scrollController.position.maxScrollExtent
                             && event.logicalKey == LogicalKeyboardKey.arrowDown) {
                           scrollController.animateTo(
-                            scrollController.offset + 100,
+                            scrollController.offset + 200,
                             duration: const Duration(milliseconds: 200),
                             curve: Curves.easeInOut,
                           );
