@@ -237,6 +237,7 @@ class ChannelProvider with ChangeNotifier {
       }
     } catch (e) {
       logger.e('gemini error', error: e);
+      currentDescription = 'No Description';
     }
   }
 
