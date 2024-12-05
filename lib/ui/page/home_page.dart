@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         leading: Image.asset('assets/images/ic_banner.png', width: 120, height: 60,),
         leadingWidth: 120,
-        title: const AdMobWidget(),
+        title: const AdMobWidget(adId: bannerHome,),
         centerTitle: true,
         actions: [
           IconButton(

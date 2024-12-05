@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdMobWidget extends StatefulWidget {
-  const AdMobWidget({super.key});
+  const AdMobWidget({super.key, required this.adId});
+
+  final String adId;
 
   @override
   State<AdMobWidget> createState() => _AdMobWidgetState();
@@ -34,7 +36,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
 
   void loadAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-1990824556833029/8865250198',
+      adUnitId: widget.adId,
       request: const AdRequest(),
       size: AdSize(width: MediaQuery.of(context).size.width ~/ 2.5, height: 40),
       listener: BannerAdListener(

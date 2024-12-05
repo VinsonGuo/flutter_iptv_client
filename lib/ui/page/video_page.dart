@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -169,7 +170,7 @@ class _VideoPageState extends State<VideoPage> {
     } else {
       return Scaffold(
             appBar: AppBar(
-              title: const AdMobWidget(),
+              title: const AdMobWidget(adId: bannerVideo,),
               centerTitle: true,
               actions: [
                 IconButton(
