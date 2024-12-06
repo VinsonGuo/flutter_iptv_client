@@ -41,6 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 title: const Text('Select m3u8 url'),
                 subtitle: Text('current url: $currentUrl'),
+                autofocus: true,
                 onTap: () {
                   Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const SelectM3u8Page()));
