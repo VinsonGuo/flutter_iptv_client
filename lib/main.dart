@@ -1,8 +1,6 @@
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_preference.dart';
 import 'package:provider/provider.dart';
@@ -22,8 +20,6 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  await dotenv.load();
-  Gemini.init(apiKey: dotenv.env['GEMINI_KEY']!);
   MobileAds.instance.initialize();
   runApp(const MyApp());
 }

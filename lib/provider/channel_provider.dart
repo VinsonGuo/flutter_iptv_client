@@ -3,13 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_dio.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
 import 'package:flutter_iptv_client/model/m3u8_entry.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../common/shared_preference.dart';
 
@@ -22,7 +20,6 @@ class ChannelProvider with ChangeNotifier {
   List<String> allCategories = ['favorite', 'all'];
   List<String> allCountries = ['all'];
   Channel? currentChannel;
-  String? currentDescription;
   String? currentUrl;
   String category = 'all';
   String country = 'all';
@@ -202,43 +199,6 @@ class ChannelProvider with ChangeNotifier {
   void setCurrentChannel(Channel? channel) {
     currentChannel = channel;
     notifyListeners();
-    if (channel?.id != null) {
-      generateDescription(channel!.id);
-    }
-  }
-
-  Future<void> generateDescription(String channelId) async {
-    try {
-      currentDescription = null;
-      if (currentChannel == null) {
-        return;
-      }
-      final dir = await getApplicationDocumentsDirectory();
-      final descFile = File('${dir.path}/desc/$channelId.md');
-      logger.i('descFile file path: ${descFile.path}');
-      String? desc;
-      if (!descFile.existsSync()) {
-        final prompt = "Can you give me a general introduction of TV channel in ${currentChannel!.country} called ${currentChannel!
-            .name}? And then give me more details about this channel?";
-        final response = await Gemini.instance.text(
-            prompt, modelName: 'models/gemini-1.5-flash');
-        desc = response!.content!.parts!.last.text;
-        if (desc != null) {
-          await descFile.create(recursive: true);
-          descFile.writeAsString(desc);
-        }
-      } else {
-        desc = await descFile.readAsString();
-      }
-      logger.i('channel $channelId desc is: $desc');
-      if (currentChannel!.id == channelId) {
-        currentDescription = desc;
-        notifyListeners();
-      }
-    } catch (e) {
-      logger.e('gemini error', error: e);
-      currentDescription = 'No Description';
-    }
   }
 
   bool previousChannel() {

@@ -40,7 +40,13 @@ class _VideoPageState extends State<VideoPage> {
     final provider = context.read<ChannelProvider>();
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
-    final desc = context.select((ChannelProvider value) => value.currentDescription);
+    final channels =
+        context.select((ChannelProvider value) => value.channels);
+    final index = channels.indexOf(channel);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.animateTo(index * 50.0,
+          duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
+    });
     logger.i('video url is ${channel.url}');
     if (lastUrl != channel.url) {
       videoPlayerController?.dispose();
@@ -135,6 +141,7 @@ class _VideoPageState extends State<VideoPage> {
                   }
                 },
                 child: Scaffold(
+                  backgroundColor: Colors.black,
                   body: Stack(
                     children: [
                       chewie,
@@ -266,60 +273,39 @@ class _VideoPageState extends State<VideoPage> {
                   width: 20,
                 ),
                 Expanded(
-                  child: Focus(
-                    onKeyEvent: (_, event) {
-                      if (event is KeyDownEvent) {
-                        if (scrollController.offset > 0
-                            && event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                          scrollController.animateTo(
-                            scrollController.offset - 200,
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
-                          return KeyEventResult.handled;
-                        }
-                        if (scrollController.offset < scrollController.position.maxScrollExtent
-                            && event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                          scrollController.animateTo(
-                            scrollController.offset + 200,
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
-                          return KeyEventResult.handled;
-                        }
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: ListView(
+                    child: ListView.builder(
                       controller: scrollController,
-                        children: [
-                          ListTile(
-                            contentPadding: const EdgeInsets.all(0),
-                            leading: Container(
-                              width: 60,
-                              height: 40,
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              child: CachedNetworkImage(
-                                imageUrl: channel.logo ?? '',
-                                errorWidget: (_, __, ___) => Icon(
-                                  Icons.tv,
-                                  size: 24,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
+                      itemBuilder: (_, index) {
+                        final item = channels[index];
+                        return SizedBox(
+                          height: 50,
+                          child: ListTile(
+                            dense: true,
+                            horizontalTitleGap: 0,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            selected: item.id == channel.id,
+                            selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            onTap: () {
+                              provider.setCurrentChannel(item);
+                            },
+                            leading: CachedNetworkImage(
+                              width: 40,
+                              height: 25,
+                              imageUrl: item.logo ?? '',
+                              errorWidget: (_, __, ___) => Icon(
+                                Icons.tv,
+                                size: 24,
+                                color: Theme.of(context).colorScheme.primaryContainer,
                               ),
                             ),
-                            title: Text(channel.name, style: Theme.of(context).textTheme.titleLarge,),
+                            title: Text(item.name),
                           ),
-                          const SizedBox(height: 10,),
-                          Text('Channel Description from Gemini✨',style: Theme.of(context).textTheme.titleMedium,),
-                          const SizedBox(height: 10,),
-                          Visibility(
-                              visible: desc != null,
-                              replacement: const LinearProgressIndicator(),
-                              child: MarkdownBody(data: desc ?? '')),
-                        ],
+                        );
+                      },
+                      itemCount: channels.length,
                     ),
-                  )),
+                ),
                 const SizedBox(
                   width: 20,
                 ),
