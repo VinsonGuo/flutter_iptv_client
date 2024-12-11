@@ -376,68 +376,75 @@ class _VideoPageState extends State<VideoPage> {
         ),
         body: Column(
           children: [
-            const SizedBox(
-              width: 20,
-            ),
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: chewie,
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                FilledButton(
-                    onPressed: () {
-                      if (channel.website != null) {
-                        launchUrl(Uri.parse(channel.website!));
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Could not open the URL.')),
-                        );
-                      }
-                    },
-                    child: const Row(
-                      children: [
-                        Icon(Icons.web),
-                      ],
-                    )),
-                FilledButton(
-                    onPressed: () {
-                      provider.previousChannel();
-                    },
-                    child: const Row(
-                      children: [
-                        Icon(Icons.skip_previous),
-                      ],
-                    )),
-                FilledButton(
-                    onPressed: () {
-                      provider.nextChannel();
-                    },
-                    child: const Row(
-                      children: [
-                        Icon(Icons.skip_next),
-                      ],
-                    )),
-                FilledButton(
-                    autofocus: true,
-                    onPressed: () {
-                      setState(() {
-                        isFullscreen = true;
-                      });
-                      SystemChrome.setEnabledSystemUIMode(
-                          SystemUiMode.immersive);
-                      SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.landscapeLeft,
-                        DeviceOrientation.landscapeRight,
-                      ]);
-                    },
-                    child: const Icon(Icons.fullscreen))
-              ],
+            Container(
+              color: Theme.of(context).colorScheme.background,
+              child: Column(
+                children: [
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: chewie,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FilledButton(
+                          onPressed: () {
+                            if (channel.website != null) {
+                              launchUrl(Uri.parse(channel.website!));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Could not open the URL.')),
+                              );
+                            }
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(Icons.web),
+                            ],
+                          )),
+                      FilledButton(
+                          onPressed: () {
+                            provider.previousChannel();
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(Icons.skip_previous),
+                            ],
+                          )),
+                      FilledButton(
+                          onPressed: () {
+                            provider.nextChannel();
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(Icons.skip_next),
+                            ],
+                          )),
+                      FilledButton(
+                          autofocus: true,
+                          onPressed: () {
+                            setState(() {
+                              isFullscreen = true;
+                            });
+                            SystemChrome.setEnabledSystemUIMode(
+                                SystemUiMode.immersive);
+                            SystemChrome.setPreferredOrientations([
+                              DeviceOrientation.landscapeLeft,
+                              DeviceOrientation.landscapeRight,
+                            ]);
+                          },
+                          child: const Icon(Icons.fullscreen))
+                    ],
+                  ),
+                ],
+              ),
             ),
             Expanded(
               child: ListView.builder(
