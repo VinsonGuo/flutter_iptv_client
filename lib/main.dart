@@ -16,10 +16,6 @@ void main() async {
     logger.i('ffmpeg: ${log.getMessage()}');
   });
   sharedPreferences = await SharedPreferences.getInstance();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
   MobileAds.instance.initialize();
   runApp(const MyApp());
 }

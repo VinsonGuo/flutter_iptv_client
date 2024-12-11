@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
+import 'package:flutter_iptv_client/model/channel.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -27,6 +27,7 @@ class _VideoPageState extends State<VideoPage> {
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
+  final listTileHeight = 56.0;
 
   @override
   void initState() {
@@ -40,13 +41,7 @@ class _VideoPageState extends State<VideoPage> {
     final provider = context.read<ChannelProvider>();
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
-    final channels =
-        context.select((ChannelProvider value) => value.channels);
-    final index = channels.indexOf(channel);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.animateTo(index * 50.0,
-          duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
-    });
+    final channels = context.select((ChannelProvider value) => value.channels);
     logger.i('video url is ${channel.url}');
     if (lastUrl != channel.url) {
       videoPlayerController?.dispose();
@@ -87,7 +82,8 @@ class _VideoPageState extends State<VideoPage> {
                     SizedBox(
                       height: 6,
                     ),
-                    Text("Current channel is not available for playback. Please refresh or import your custom playlist URL"),
+                    Text(
+                        "Current channel is not available for playback. Please refresh or import your custom playlist URL"),
                   ],
                 ),
               ),
@@ -108,210 +104,81 @@ class _VideoPageState extends State<VideoPage> {
     final chewie = Chewie(
       controller: chewieController!,
     );
+
     if (isFullscreen) {
       return PopScope(
-            canPop: !isFullscreen,
-            onPopInvoked: (didPop) {
-              if (didPop) {
-                return;
-              }
-              if (isFullscreen) {
-                setState(() {
-                  isFullscreen = false;
-                });
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+        canPop: !isFullscreen,
+        onPopInvoked: (didPop) {
+          if (didPop) {
+            return;
+          }
+          if (isFullscreen) {
+            setState(() {
+              isFullscreen = false;
+            });
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+            SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+          }
+        },
+        child: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if ((details.primaryVelocity ?? 0) > 0) {
+              provider.previousChannel();
+            } else if ((details.primaryVelocity ?? 0) < 0) {
+              provider.nextChannel();
+            }
+          },
+          child: KeyboardListener(
+            focusNode: FocusNode(),
+            onKeyEvent: (event) {
+              final key = event.logicalKey;
+              if (key == LogicalKeyboardKey.arrowUp) {
+                provider.previousChannel();
+              } else if (key == LogicalKeyboardKey.arrowDown) {
+                provider.nextChannel();
               }
             },
-            child: GestureDetector(
-              onHorizontalDragEnd:  (details) {
-                if ((details.primaryVelocity ?? 0) > 0) {
-                  provider.previousChannel();
-                } else if ((details.primaryVelocity ?? 0) < 0) {
-                  provider.nextChannel();
-                }
-              },
-              child: KeyboardListener(
-                focusNode: FocusNode(),
-                onKeyEvent: (event) {
-                  final key = event.logicalKey;
-                  if (key == LogicalKeyboardKey.arrowUp) {
-                    provider.previousChannel();
-                  } else if (key == LogicalKeyboardKey.arrowDown) {
-                    provider.nextChannel();
-                  }
-                },
-                child: Scaffold(
-                  backgroundColor: Colors.black,
-                  body: Stack(
-                    children: [
-                      chewie,
-                      Visibility(
-                        visible: showFullscreenInfo,
-                        child: Align(
-                          alignment: const Alignment(0, 0.9),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              CachedNetworkImage(
-                                width: 60,
-                                height: 40,
-                                imageUrl: channel.logo ?? '',
-                                errorWidget: (_, __, ___) => Icon(
-                                  Icons.tv,
-                                  size: 24,
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              ),
-                              Text(channel.name),
-                            ],
+            child: Scaffold(
+              backgroundColor: Colors.black,
+              body: Stack(
+                children: [
+                  chewie,
+                  Visibility(
+                    visible: showFullscreenInfo,
+                    child: Align(
+                      alignment: const Alignment(0, 0.9),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          CachedNetworkImage(
+                            width: 60,
+                            height: 40,
+                            imageUrl: channel.logo ?? '',
+                            errorWidget: (_, __, ___) => Icon(
+                              Icons.tv,
+                              size: 24,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
                           ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-    } else {
-      return Scaffold(
-            appBar: AppBar(
-              title: const AdMobWidget(adId: bannerVideo,),
-              centerTitle: true,
-              actions: [
-                IconButton(
-                    onPressed: () {
-                      provider.setFavorite(channel.id, !channel.isFavorite);
-                    },
-                    icon: Icon(
-                      channel.isFavorite ? Icons.star : Icons.star_border,
-                      size: 24,
-                    ))
-              ],
-            ),
-            body: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  width: 20,
-                ),
-                Column(
-                  children: [
-                    Expanded(
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: chewie,
+                          Text(channel.name),
+                        ],
                       ),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      children: [
-                        FilledButton(
-                            onPressed: () {
-                              if (channel.website != null) {
-                                launchUrl(Uri.parse(channel.website!));
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Could not open the URL.')),
-                                );
-                              }
-                            },
-                            child: const Row(
-                              children: [
-                                Icon(Icons.web),
-                              ],
-                            )),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        FilledButton(
-                            onPressed: () {
-                              provider.previousChannel();
-                            },
-                            child: const Row(
-                              children: [
-                                Icon(Icons.skip_previous),
-                                Text('Prev'),
-                              ],
-                            )),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        FilledButton(
-                            onPressed: () {
-                              provider.nextChannel();
-                            },
-                            child: const Row(
-                              children: [
-                                Text('Next'),
-                                Icon(Icons.skip_next),
-                              ],
-                            )),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        FilledButton(
-                            autofocus: true,
-                            onPressed: () {
-                              setState(() {
-                                isFullscreen = true;
-                              });
-                              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-                            },
-                            child: const Icon(Icons.fullscreen))
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                    child: ListView.builder(
-                      controller: scrollController,
-                      itemBuilder: (_, index) {
-                        final item = channels[index];
-                        return SizedBox(
-                          height: 50,
-                          child: ListTile(
-                            dense: true,
-                            horizontalTitleGap: 0,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                            selected: item.id == channel.id,
-                            selectedTileColor: Theme.of(context).colorScheme.onPrimary,
-                            selectedColor: Theme.of(context).colorScheme.primary,
-                            onTap: () {
-                              provider.setCurrentChannel(item);
-                            },
-                            leading: CachedNetworkImage(
-                              width: 40,
-                              height: 25,
-                              imageUrl: item.logo ?? '',
-                              errorWidget: (_, __, ___) => Icon(
-                                Icons.tv,
-                                size: 24,
-                                color: Theme.of(context).colorScheme.primaryContainer,
-                              ),
-                            ),
-                            title: Text(item.name),
-                          ),
-                        );
-                      },
-                      itemCount: channels.length,
-                    ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-              ],
+                  )
+                ],
+              ),
             ),
-          );
+          ),
+        ),
+      );
+    } else {
+      return OrientationBuilder(builder: (context, orientation) {
+        if (orientation == Orientation.portrait) {
+          return portraitPage(provider, chewie, channels, channel);
+        }
+        return landscapePage(provider, chewie, channels, channel);
+      });
     }
   }
 
@@ -323,4 +190,293 @@ class _VideoPageState extends State<VideoPage> {
     chewieController?.dispose();
     scrollController.dispose();
   }
+
+  Widget landscapePage(ChannelProvider provider, Widget chewie,
+      List<Channel> channels, Channel channel) {
+    final index = channels.indexOf(channel);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollController.jumpTo(index * listTileHeight);
+    });
+    return Scaffold(
+      appBar: AppBar(
+        title: AdMobWidget(
+          adId: bannerVideo,
+          width: MediaQuery.of(context).size.width ~/ 2.5,
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                provider.setFavorite(channel.id, !channel.isFavorite);
+              },
+              icon: Icon(
+                channel.isFavorite ? Icons.star : Icons.star_border,
+                size: 24,
+              ))
+        ],
+      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            width: 20,
+          ),
+          Column(
+            children: [
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: chewie,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Row(
+                children: [
+                  FilledButton(
+                      onPressed: () {
+                        if (channel.website != null) {
+                          launchUrl(Uri.parse(channel.website!));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Could not open the URL.')),
+                          );
+                        }
+                      },
+                      child: const Row(
+                        children: [
+                          Icon(Icons.web),
+                        ],
+                      )),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  FilledButton(
+                      onPressed: () {
+                        provider.previousChannel();
+                      },
+                      child: const Row(
+                        children: [
+                          Icon(Icons.skip_previous),
+                          Text('Prev'),
+                        ],
+                      )),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  FilledButton(
+                      onPressed: () {
+                        provider.nextChannel();
+                      },
+                      child: const Row(
+                        children: [
+                          Text('Next'),
+                          Icon(Icons.skip_next),
+                        ],
+                      )),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  FilledButton(
+                      autofocus: true,
+                      onPressed: () {
+                        setState(() {
+                          isFullscreen = true;
+                        });
+                        SystemChrome.setEnabledSystemUIMode(
+                            SystemUiMode.immersive);
+                        SystemChrome.setPreferredOrientations([
+                          DeviceOrientation.landscapeLeft,
+                          DeviceOrientation.landscapeRight,
+                        ]);
+                      },
+                      child: const Icon(Icons.fullscreen))
+                ],
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+            ],
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+          Expanded(
+            child: ListView.builder(
+              controller: scrollController,
+              itemBuilder: (_, index) {
+                final item = channels[index];
+                return SizedBox(
+                  height: listTileHeight,
+                  child: ListTile(
+                    dense: true,
+                    horizontalTitleGap: 4,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                    selected: item.id == channel.id,
+                    selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+                    selectedColor: Theme.of(context).colorScheme.primary,
+                    onTap: () {
+                      provider.setCurrentChannel(item);
+                    },
+                    leading: CachedNetworkImage(
+                      width: 40,
+                      height: 25,
+                      imageUrl: item.logo ?? '',
+                      errorWidget: (_, __, ___) => Icon(
+                        Icons.tv,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                    ),
+                    title: Text(item.name),
+                  ),
+                );
+              },
+              itemCount: channels.length,
+            ),
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget portraitPage(ChannelProvider provider, Widget chewie,
+          List<Channel> channels, Channel channel) =>
+      Scaffold(
+        appBar: AppBar(
+          title: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            leading: CachedNetworkImage(
+              width: 40,
+              height: 25,
+              imageUrl: channel.logo ?? '',
+              errorWidget: (_, __, ___) => Icon(
+                Icons.tv,
+                size: 24,
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            ),
+            title: Text(channel.name),
+          ),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  provider.setFavorite(channel.id, !channel.isFavorite);
+                },
+                icon: Icon(
+                  channel.isFavorite ? Icons.star : Icons.star_border,
+                  size: 24,
+                ))
+          ],
+        ),
+        body: Column(
+          children: [
+            const SizedBox(
+              width: 20,
+            ),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: chewie,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FilledButton(
+                    onPressed: () {
+                      if (channel.website != null) {
+                        launchUrl(Uri.parse(channel.website!));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Could not open the URL.')),
+                        );
+                      }
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.web),
+                      ],
+                    )),
+                FilledButton(
+                    onPressed: () {
+                      provider.previousChannel();
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.skip_previous),
+                      ],
+                    )),
+                FilledButton(
+                    onPressed: () {
+                      provider.nextChannel();
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.skip_next),
+                      ],
+                    )),
+                FilledButton(
+                    autofocus: true,
+                    onPressed: () {
+                      setState(() {
+                        isFullscreen = true;
+                      });
+                      SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.immersive);
+                      SystemChrome.setPreferredOrientations([
+                        DeviceOrientation.landscapeLeft,
+                        DeviceOrientation.landscapeRight,
+                      ]);
+                    },
+                    child: const Icon(Icons.fullscreen))
+              ],
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemBuilder: (_, index) {
+                  final item = channels[index];
+                  return SizedBox(
+                    height: listTileHeight,
+                    child: ListTile(
+                      horizontalTitleGap: 4,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      selected: item.id == channel.id,
+                      selectedTileColor:
+                          Theme.of(context).colorScheme.onPrimary,
+                      selectedColor: Theme.of(context).colorScheme.primary,
+                      onTap: () {
+                        provider.setCurrentChannel(item);
+                      },
+                      leading: CachedNetworkImage(
+                        width: 40,
+                        height: 25,
+                        imageUrl: item.logo ?? '',
+                        errorWidget: (_, __, ___) => Icon(
+                          Icons.tv,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                        ),
+                      ),
+                      title: Text(item.name),
+                    ),
+                  );
+                },
+                itemCount: channels.length,
+              ),
+            ),
+            AdMobWidget(
+                adId: bannerVideo,
+                width: MediaQuery.of(context).size.width.toInt()),
+          ],
+        ),
+      );
 }

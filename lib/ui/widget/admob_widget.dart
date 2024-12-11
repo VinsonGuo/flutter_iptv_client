@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdMobWidget extends StatefulWidget {
-  const AdMobWidget({super.key, required this.adId});
+  const AdMobWidget({super.key, required this.adId, required this.width});
 
   final String adId;
+  final int width;
 
   @override
   State<AdMobWidget> createState() => _AdMobWidgetState();
@@ -28,7 +29,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
       child: !_isLoaded
           ? const SizedBox.shrink()
           : SizedBox(
-              width: MediaQuery.of(context).size.width / 2.5,
+              width: widget.width.toDouble(),
               height: 40,
               child: AdWidget(ad: _bannerAd!)),
     );
@@ -38,7 +39,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
     _bannerAd = BannerAd(
       adUnitId: widget.adId,
       request: const AdRequest(),
-      size: AdSize(width: MediaQuery.of(context).size.width ~/ 2.5, height: 40),
+      size: AdSize(width: widget.width, height: 40),
       listener: BannerAdListener(
         // Called when an ad is successfully received.
         onAdLoaded: (ad) {

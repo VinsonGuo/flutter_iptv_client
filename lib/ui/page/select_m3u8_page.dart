@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../common/data.dart';
 import '../../provider/channel_provider.dart';
 
-class SelectM3u8Page extends StatefulWidget{
+class SelectM3u8Page extends StatefulWidget {
   const SelectM3u8Page({super.key});
 
   @override
@@ -12,8 +12,8 @@ class SelectM3u8Page extends StatefulWidget{
 }
 
 class _SelectM3u8PageState extends State<SelectM3u8Page> {
-
   late TextEditingController textEditingController;
+
   @override
   void initState() {
     super.initState();
@@ -30,44 +30,85 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
   Widget build(BuildContext context) {
     final provider = context.read<ChannelProvider>();
     final currentUrl =
-    context.select((ChannelProvider value) => value.currentUrl);
+        context.select((ChannelProvider value) => value.currentUrl);
     final m3u8UrlList =
-    context.select((ChannelProvider value) => value.m3u8UrlList);
+        context.select((ChannelProvider value) => value.m3u8UrlList);
     return Scaffold(
       appBar: AppBar(title: const Text('Select m3u8 url')),
       body: Stack(
         children: [
           ListView(
             children: [
-              ListTile(
-                title: const Text('Import m3u8 playlist url'),
-                subtitle: TextField(
-                  controller: textEditingController,
-                  onSubmitted: (_) async {
-                    await onImportPress(provider);
-                  },
-                ),
-                trailing: Wrap(children: [
-                  FilledButton(
-                      onPressed: () async {
-                        await onImportPress(provider);
-                      },
-                      child: const Text('Import')),
-                  const SizedBox(
-                    width: 10,
+              OrientationBuilder(builder: (context, orientation) {
+                if (orientation == Orientation.portrait) {
+                  return Column(children: [
+                    ListTile(
+                      title: const Text('Import m3u8 playlist url'),
+                      subtitle: TextField(
+                        controller: textEditingController,
+                        onSubmitted: (_) async {
+                          await onImportPress(provider);
+                        },
+                      ),
+                    ),
+                    Wrap(
+                      children: [
+                        FilledButton(
+                            onPressed: () async {
+                              await onImportPress(provider);
+                            },
+                            child: const Text('Import')),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        FilledButton(
+                            onPressed: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              await provider.resetM3UContent();
+                              if (mounted) {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text('Reset success')));
+                              }
+                            },
+                            child: const Text('Reset')),
+                      ],
+                    ),
+                  ]);
+                }
+                return ListTile(
+                  title: const Text('Import m3u8 playlist url'),
+                  subtitle: TextField(
+                    controller: textEditingController,
+                    onSubmitted: (_) async {
+                      await onImportPress(provider);
+                    },
                   ),
-                  FilledButton(
-                      onPressed: () async {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        await provider.resetM3UContent();
-                        if (mounted) {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
-                              const SnackBar(content: Text('Reset success')));
-                        }
-                      },
-                      child: const Text('Reset')),
-                ],),
-              ),
+                  trailing: Wrap(
+                    children: [
+                      FilledButton(
+                          onPressed: () async {
+                            await onImportPress(provider);
+                          },
+                          child: const Text('Import')),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      FilledButton(
+                          onPressed: () async {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            await provider.resetM3UContent();
+                            if (mounted) {
+                              ScaffoldMessenger.of(this.context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Reset success')));
+                            }
+                          },
+                          child: const Text('Reset')),
+                    ],
+                  ),
+                );
+              }),
               for (final url in m3u8UrlList)
                 Row(
                   children: [
@@ -85,17 +126,23 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
                     ),
                     Visibility(
                         visible: url != defaultM3u8Url && url != currentUrl,
-                        child: IconButton(onPressed: (){
-                          provider.deleteM3u8Url(url);
-                        }, icon: const Icon(Icons.delete,), )),
+                        child: IconButton(
+                          onPressed: () {
+                            provider.deleteM3u8Url(url);
+                          },
+                          icon: const Icon(
+                            Icons.delete,
+                          ),
+                        )),
                   ],
                 ),
             ],
           ),
           Visibility(
-              visible:
-              context.select((ChannelProvider value) => value.loading),
-              replacement: const SizedBox(height: 4,),
+              visible: context.select((ChannelProvider value) => value.loading),
+              replacement: const SizedBox(
+                height: 4,
+              ),
               child: const LinearProgressIndicator()),
         ],
       ),
@@ -107,16 +154,13 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
     final text = textEditingController.text.trim();
     if (await provider.importFromUrl(text)) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Import success')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Import success')));
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Import failed, please check m3u8 url')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Import failed, please check m3u8 url')));
       }
     }
   }
