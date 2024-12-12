@@ -1,4 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdMobWidget extends StatefulWidget {
@@ -14,11 +16,15 @@ class AdMobWidget extends StatefulWidget {
 class _AdMobWidgetState extends State<AdMobWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadAd();
+    });
+    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
       loadAd();
     });
   }
@@ -30,12 +36,13 @@ class _AdMobWidgetState extends State<AdMobWidget> {
           ? const SizedBox.shrink()
           : SizedBox(
               width: widget.width.toDouble(),
-              height: 40,
+              height: 50,
               child: AdWidget(ad: _bannerAd!)),
     );
   }
 
   void loadAd() {
+    _bannerAd?.dispose();
     _bannerAd = BannerAd(
       adUnitId: widget.adId,
       request: const AdRequest(),
@@ -56,5 +63,12 @@ class _AdMobWidgetState extends State<AdMobWidget> {
         },
       ),
     )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // 释放广告资源
+    _refreshTimer?.cancel(); // 停止定时器
+    super.dispose();
   }
 }

@@ -1,8 +1,12 @@
 import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_preference.dart';
+import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -31,36 +35,48 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChannelProvider()),
       ],
       builder: (context, child) {
-        return MaterialApp(
-          title: 'IPTV Player',
-          themeMode: ThemeMode.dark,
-          theme: ThemeData(
-            iconButtonTheme: IconButtonThemeData(
-              style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.all(Colors.grey)
-              )
+        return Column(
+          children: [
+            Expanded(
+              child: MaterialApp(
+                title: 'IPTV Player',
+                themeMode: ThemeMode.dark,
+                theme: ThemeData(
+                  iconButtonTheme: IconButtonThemeData(
+                    style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all(Colors.grey)
+                    )
+                  ),
+                  filledButtonTheme: FilledButtonThemeData(
+                    style: ButtonStyle(
+                        overlayColor: MaterialStateProperty.all(const Color(0x66000000))
+                    )
+                  ),
+                  colorScheme: ColorScheme.fromSeed(
+                      seedColor: Colors.deepPurple, brightness: Brightness.dark),
+                  useMaterial3: true,
+                ),
+                home: const HomePage(),
+              ),
             ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: ButtonStyle(
-                  overlayColor: MaterialStateProperty.all(const Color(0x66000000))
-              )
-            ),
-            colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple, brightness: Brightness.dark),
-            useMaterial3: true,
-          ),
-          home: Stack(
-            children: [
-              const HomePage(),
-              Visibility(
-                  visible:
-                      context.select((ChannelProvider value) => value.loading),
-                  child: Container(
-                      alignment: Alignment.center,
-                      color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(100),
-                      child: const CircularProgressIndicator()))
-            ],
-          ),
+            SafeArea(
+              bottom: true,
+              top: false,
+              child: Builder(
+                builder: (context) {
+                  if (MediaQuery.orientationOf(context) == Orientation.portrait) {
+                    return AdMobWidget(adId: bannerHome, width: MediaQuery
+                        .of(context)
+                        .size
+                        .width
+                        .toInt());
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                }
+              ),
+            )
+          ],
         );
       },
     );

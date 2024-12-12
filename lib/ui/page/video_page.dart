@@ -199,11 +199,20 @@ class _VideoPageState extends State<VideoPage> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: AdMobWidget(
-          adId: bannerVideo,
-          width: MediaQuery.of(context).size.width ~/ 2.5,
+        title: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+          leading: CachedNetworkImage(
+            width: 40,
+            height: 25,
+            imageUrl: channel.logo ?? '',
+            errorWidget: (_, __, ___) => Icon(
+              Icons.tv,
+              size: 24,
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
+          ),
+          title: Text(channel.name),
         ),
-        centerTitle: true,
         actions: [
           IconButton(
               onPressed: () {
@@ -480,9 +489,6 @@ class _VideoPageState extends State<VideoPage> {
                 itemCount: channels.length,
               ),
             ),
-            AdMobWidget(
-                adId: bannerVideo,
-                width: MediaQuery.of(context).size.width.toInt()),
           ],
         ),
       );

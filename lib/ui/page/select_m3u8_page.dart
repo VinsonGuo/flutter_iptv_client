@@ -127,8 +127,22 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
                     Visibility(
                         visible: url != defaultM3u8Url && url != currentUrl,
                         child: IconButton(
-                          onPressed: () {
-                            provider.deleteM3u8Url(url);
+                          onPressed: () async {
+                            final result = await showDialog(context: context, builder: (context) => AlertDialog(
+                              title: Text('Message'),
+                              content: Text('Confirm to delete?'),
+                              actions: [
+                                TextButton(onPressed: (){
+                                  Navigator.pop(context, false);
+                                }, child: Text('Cancel')),
+                                TextButton(onPressed: (){
+                                  Navigator.pop(context, true);
+                                }, child: Text('Confirm')),
+                              ],
+                            ));
+                            if (result == true) {
+                              provider.deleteM3u8Url(url);
+                            }
                           },
                           icon: const Icon(
                             Icons.delete,
