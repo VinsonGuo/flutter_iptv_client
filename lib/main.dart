@@ -62,18 +62,12 @@ class MyApp extends StatelessWidget {
             SafeArea(
               bottom: true,
               top: false,
-              child: Builder(
-                builder: (context) {
-                  if (MediaQuery.orientationOf(context) == Orientation.portrait) {
-                    return AdMobWidget(adId: bannerHome, width: MediaQuery
-                        .of(context)
-                        .size
-                        .width
-                        .toInt());
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                }
+              child: Visibility(
+                visible:
+                    MediaQuery.orientationOf(context) == Orientation.portrait,
+                child: AdMobWidget(
+                    adId: bannerHome,
+                    width: MediaQuery.of(context).size.width.toInt()),
               ),
             )
           ],
