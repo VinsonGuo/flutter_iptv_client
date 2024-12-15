@@ -11,7 +11,7 @@ class CountryPage extends StatelessWidget {
     final language = context.select((ChannelProvider value) => value.country);
     final allCountries = context.select((ChannelProvider value) => value.allCountries);
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Channel Country/Region')),
+      appBar: AppBar(title: const Text('Channel Country/Region')),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.width ~/ 100),
         itemBuilder: (_, index) {

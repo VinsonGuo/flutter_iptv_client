@@ -54,6 +54,7 @@ dependencies:
   package_info_plus:
   wakelock_plus:
   loading_animation_widget:
+  scrollable_positioned_list: ^0.3.8
 
 dev_dependencies:
   flutter_test:

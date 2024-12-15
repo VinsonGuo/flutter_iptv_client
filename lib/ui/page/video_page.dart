@@ -2,11 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
-import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -23,17 +23,15 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   ChewieController? chewieController;
   VideoPlayerController? videoPlayerController;
-  late ScrollController scrollController;
+  ItemScrollController scrollController = ItemScrollController();
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
-  final listTileHeight = 56.0;
 
   @override
   void initState() {
     super.initState();
     WakelockPlus.enable();
-    scrollController = ScrollController();
   }
 
   @override
@@ -47,7 +45,8 @@ class _VideoPageState extends State<VideoPage> {
       videoPlayerController?.dispose();
       chewieController?.dispose();
       videoPlayerController =
-          VideoPlayerController.networkUrl(Uri.parse(channel.url ?? ''));
+          VideoPlayerController.networkUrl(Uri.parse(channel.url ?? ''),
+          httpHeaders: {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'});
       chewieController = ChewieController(
           aspectRatio: 16 / 9,
           videoPlayerController: videoPlayerController!,
@@ -83,11 +82,19 @@ class _VideoPageState extends State<VideoPage> {
                       height: 6,
                     ),
                     Text(
-                        "Current channel is not available for playback. Please refresh or import your custom playlist URL"),
+                        "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
                   ],
                 ),
               ),
-          placeholder: const Center(child: CircularProgressIndicator()));
+          placeholder: Center(child: LoadingAnimationWidget.beat(
+            color: Theme.of(context).colorScheme.primary,
+            size: 60,
+          )),
+        bufferingBuilder: (_) => Center(child: LoadingAnimationWidget.beat(
+          color: Theme.of(context).colorScheme.primary,
+          size: 60,
+        )),
+      );
       setState(() {
         showFullscreenInfo = true;
       });
@@ -96,6 +103,14 @@ class _VideoPageState extends State<VideoPage> {
           setState(() {
             showFullscreenInfo = false;
           });
+        }
+      });
+
+      final index = channels.indexOf(channel);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (index >= 0 && scrollController.isAttached) {
+          scrollController.scrollTo(
+              index: index, duration: const Duration(milliseconds: 200));
         }
       });
     }
@@ -122,9 +137,9 @@ class _VideoPageState extends State<VideoPage> {
         },
         child: GestureDetector(
           onHorizontalDragEnd: (details) {
-            if ((details.primaryVelocity ?? 0) > 0) {
+            if ((details.primaryVelocity ?? 0) > 10) {
               provider.previousChannel();
-            } else if ((details.primaryVelocity ?? 0) < 0) {
+            } else if ((details.primaryVelocity ?? 0) < -10) {
               provider.nextChannel();
             }
           },
@@ -161,7 +176,18 @@ class _VideoPageState extends State<VideoPage> {
                               color: Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),
+                          const SizedBox(width: 10,),
                           Text(channel.name),
+                          const SizedBox(width: 10,),
+                          Image.asset(
+                            'assets/images/flags/${channel.country?.toLowerCase()}.png',
+                            height: 12,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                          const SizedBox(
+                            width: 4,
+                          ),
+                          Text('${channel.country ?? ''}\t${channel.languages.join(',')}'),
                         ],
                       ),
                     ),
@@ -173,190 +199,7 @@ class _VideoPageState extends State<VideoPage> {
         ),
       );
     } else {
-      return OrientationBuilder(builder: (context, orientation) {
-        if (orientation == Orientation.portrait) {
-          return portraitPage(provider, chewie, channels, channel);
-        }
-        return landscapePage(provider, chewie, channels, channel);
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    WakelockPlus.disable();
-    videoPlayerController?.dispose();
-    chewieController?.dispose();
-    scrollController.dispose();
-  }
-
-  Widget landscapePage(ChannelProvider provider, Widget chewie,
-      List<Channel> channels, Channel channel) {
-    final index = channels.indexOf(channel);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.jumpTo(index * listTileHeight);
-    });
-    return Scaffold(
-      appBar: AppBar(
-        title: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-          leading: CachedNetworkImage(
-            width: 40,
-            height: 25,
-            imageUrl: channel.logo ?? '',
-            errorWidget: (_, __, ___) => Icon(
-              Icons.tv,
-              size: 24,
-              color: Theme.of(context).colorScheme.primaryContainer,
-            ),
-          ),
-          title: Text(channel.name),
-        ),
-        actions: [
-          IconButton(
-              onPressed: () {
-                provider.setFavorite(channel.id, !channel.isFavorite);
-              },
-              icon: Icon(
-                channel.isFavorite ? Icons.star : Icons.star_border,
-                size: 24,
-              ))
-        ],
-      ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            width: 20,
-          ),
-          Column(
-            children: [
-              Expanded(
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: chewie,
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                children: [
-                  FilledButton(
-                      onPressed: () {
-                        if (channel.website != null) {
-                          launchUrl(Uri.parse(channel.website!));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Could not open the URL.')),
-                          );
-                        }
-                      },
-                      child: const Row(
-                        children: [
-                          Icon(Icons.web),
-                        ],
-                      )),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  FilledButton(
-                      onPressed: () {
-                        provider.previousChannel();
-                      },
-                      child: const Row(
-                        children: [
-                          Icon(Icons.skip_previous),
-                          Text('Prev'),
-                        ],
-                      )),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  FilledButton(
-                      onPressed: () {
-                        provider.nextChannel();
-                      },
-                      child: const Row(
-                        children: [
-                          Text('Next'),
-                          Icon(Icons.skip_next),
-                        ],
-                      )),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  FilledButton(
-                      autofocus: true,
-                      onPressed: () {
-                        setState(() {
-                          isFullscreen = true;
-                        });
-                        SystemChrome.setEnabledSystemUIMode(
-                            SystemUiMode.immersive);
-                        SystemChrome.setPreferredOrientations([
-                          DeviceOrientation.landscapeLeft,
-                          DeviceOrientation.landscapeRight,
-                        ]);
-                      },
-                      child: const Icon(Icons.fullscreen))
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemBuilder: (_, index) {
-                final item = channels[index];
-                return SizedBox(
-                  height: listTileHeight,
-                  child: ListTile(
-                    dense: true,
-                    horizontalTitleGap: 4,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    selected: item.id == channel.id,
-                    selectedTileColor: Theme.of(context).colorScheme.onPrimary,
-                    selectedColor: Theme.of(context).colorScheme.primary,
-                    onTap: () {
-                      provider.setCurrentChannel(item);
-                    },
-                    leading: CachedNetworkImage(
-                      width: 40,
-                      height: 25,
-                      imageUrl: item.logo ?? '',
-                      errorWidget: (_, __, ___) => Icon(
-                        Icons.tv,
-                        size: 24,
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                    ),
-                    title: Text(item.name),
-                  ),
-                );
-              },
-              itemCount: channels.length,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget portraitPage(ChannelProvider provider, Widget chewie,
-          List<Channel> channels, Channel channel) =>
-      Scaffold(
+      return Scaffold(
         appBar: AppBar(
           title: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -370,126 +213,276 @@ class _VideoPageState extends State<VideoPage> {
                 color: Theme.of(context).colorScheme.primaryContainer,
               ),
             ),
-            title: Text(channel.name),
+            title: Text(channel.name, overflow: TextOverflow.ellipsis,),
+            subtitle: Row(
+              children: [
+                Image.asset(
+                  'assets/images/flags/${channel.country?.toLowerCase()}.png',
+                  height: 12,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+                const SizedBox(
+                  width: 4,
+                ),
+                Text('${channel.country ?? ''}\t${channel.languages.join(',')}'),
+              ],
+            ),
           ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  provider.setFavorite(channel.id, !channel.isFavorite);
-                },
-                icon: Icon(
-                  channel.isFavorite ? Icons.star : Icons.star_border,
-                  size: 24,
-                ))
+        ),
+        body: OrientationBuilder(builder: (context, orientation) {
+          if (orientation == Orientation.portrait) {
+            return portraitPage(provider, chewie, channels, channel);
+          }
+          return landscapePage(provider, chewie, channels, channel);
+        }),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WakelockPlus.disable();
+    videoPlayerController?.dispose();
+    chewieController?.dispose();
+  }
+
+  Widget landscapePage(ChannelProvider provider, Widget chewie,
+      List<Channel> channels, Channel channel) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(
+          width: 20,
+        ),
+        Column(
+          children: [
+            Expanded(
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: chewie,
+              ),
+            ),
+            const SizedBox(
+              height: 6,
+            ),
+            Row(
+              children: [
+                FilledButton(
+                    onPressed: () {
+                      provider.setFavorite(channel.id, !channel.isFavorite);
+                    },
+                    child: Icon(
+                      channel.isFavorite ? Icons.star : Icons.star_border,
+                    )),
+                const SizedBox(
+                  width: 10,
+                ),
+                FilledButton(
+                    onPressed: () {
+                      provider.previousChannel();
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.skip_previous),
+                        Text('Prev'),
+                      ],
+                    )),
+                const SizedBox(
+                  width: 10,
+                ),
+                FilledButton(
+                    onPressed: () {
+                      provider.nextChannel();
+                    },
+                    child: const Row(
+                      children: [
+                        Text('Next'),
+                        Icon(Icons.skip_next),
+                      ],
+                    )),
+                const SizedBox(
+                  width: 10,
+                ),
+                FilledButton(
+                    autofocus: true,
+                    onPressed: () {
+                      setState(() {
+                        isFullscreen = true;
+                      });
+                      SystemChrome.setEnabledSystemUIMode(
+                          SystemUiMode.immersive);
+                      SystemChrome.setPreferredOrientations([
+                        DeviceOrientation.landscapeLeft,
+                        DeviceOrientation.landscapeRight,
+                      ]);
+                    },
+                    child: const Icon(Icons.fullscreen))
+              ],
+            ),
           ],
         ),
-        body: Column(
-          children: [
-            Container(
-              color: Theme.of(context).colorScheme.background,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    width: 20,
+        const SizedBox(
+          width: 20,
+        ),
+        Expanded(
+          child: ScrollablePositionedList.builder(
+            itemScrollController: scrollController,
+            itemBuilder: (_, index) {
+              final item = channels[index];
+              return ListTile(
+                dense: true,
+                horizontalTitleGap: 4,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                selected: item.id == channel.id,
+                selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+                selectedColor: Theme.of(context).colorScheme.primary,
+                onTap: () {
+                  provider.setCurrentChannel(item);
+                },
+                leading: CachedNetworkImage(
+                  width: 40,
+                  height: 25,
+                  imageUrl: item.logo ?? '',
+                  errorWidget: (_, __, ___) => Icon(
+                    Icons.tv,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                   ),
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: chewie,
+                ),
+                title: Text(item.name),
+                subtitle: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/flags/${item.country?.toLowerCase()}.png',
+                      height: 12,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(
+                      width: 4,
+                    ),
+                    Text('${item.country ?? ''}\t${item.languages.join(',')}'),
+                  ],
+                ),
+              );
+            },
+            itemCount: channels.length,
+          ),
+        ),
+        const SizedBox(
+          width: 20,
+        ),
+      ],
+    );
+  }
+
+  Widget portraitPage(ChannelProvider provider, Widget chewie,
+          List<Channel> channels, Channel channel) =>
+      Column(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            child: Column(
+              children: [
+                const SizedBox(
+                  width: 20,
+                ),
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: chewie,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    FilledButton(
+                        onPressed: () {
+                          provider.setFavorite(channel.id, !channel.isFavorite);
+                        },
+                        child: Icon(
+                          channel.isFavorite ? Icons.star : Icons.star_border,
+                        )),
+                    FilledButton(
+                        onPressed: () {
+                          provider.previousChannel();
+                        },
+                        child: const Row(
+                          children: [
+                            Icon(Icons.skip_previous),
+                          ],
+                        )),
+                    FilledButton(
+                        onPressed: () {
+                          provider.nextChannel();
+                        },
+                        child: const Row(
+                          children: [
+                            Icon(Icons.skip_next),
+                          ],
+                        )),
+                    FilledButton(
+                        autofocus: true,
+                        onPressed: () {
+                          setState(() {
+                            isFullscreen = true;
+                          });
+                          SystemChrome.setEnabledSystemUIMode(
+                              SystemUiMode.immersive);
+                          SystemChrome.setPreferredOrientations([
+                            DeviceOrientation.landscapeLeft,
+                            DeviceOrientation.landscapeRight,
+                          ]);
+                        },
+                        child: const Icon(Icons.fullscreen))
+                  ],
+                ),
+                const SizedBox(height: 10,),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ScrollablePositionedList.builder(
+              itemScrollController: scrollController,
+              itemBuilder: (_, index) {
+                final item = channels[index];
+                return ListTile(
+                  selected: item.id == channel.id,
+                  selectedTileColor: Theme.of(context).colorScheme.onPrimary,
+                  selectedColor: Theme.of(context).colorScheme.primary,
+                  onTap: () {
+                    provider.setCurrentChannel(item);
+                  },
+                  leading: CachedNetworkImage(
+                    width: 40,
+                    height: 25,
+                    imageUrl: item.logo ?? '',
+                    errorWidget: (_, __, ___) => Icon(
+                      Icons.tv,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  title: Text(item.name),
+                  subtitle: Row(
                     children: [
-                      FilledButton(
-                          onPressed: () {
-                            if (channel.website != null) {
-                              launchUrl(Uri.parse(channel.website!));
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Could not open the URL.')),
-                              );
-                            }
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Icons.web),
-                            ],
-                          )),
-                      FilledButton(
-                          onPressed: () {
-                            provider.previousChannel();
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Icons.skip_previous),
-                            ],
-                          )),
-                      FilledButton(
-                          onPressed: () {
-                            provider.nextChannel();
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Icons.skip_next),
-                            ],
-                          )),
-                      FilledButton(
-                          autofocus: true,
-                          onPressed: () {
-                            setState(() {
-                              isFullscreen = true;
-                            });
-                            SystemChrome.setEnabledSystemUIMode(
-                                SystemUiMode.immersive);
-                            SystemChrome.setPreferredOrientations([
-                              DeviceOrientation.landscapeLeft,
-                              DeviceOrientation.landscapeRight,
-                            ]);
-                          },
-                          child: const Icon(Icons.fullscreen))
+                      Image.asset(
+                        'assets/images/flags/${item.country?.toLowerCase()}.png',
+                        height: 12,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      Text('${item.country ?? ''}\t${item.languages.join(',')}'),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
+              itemCount: channels.length,
             ),
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemBuilder: (_, index) {
-                  final item = channels[index];
-                  return SizedBox(
-                    height: listTileHeight,
-                    child: ListTile(
-                      horizontalTitleGap: 4,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                      selected: item.id == channel.id,
-                      selectedTileColor:
-                          Theme.of(context).colorScheme.onPrimary,
-                      selectedColor: Theme.of(context).colorScheme.primary,
-                      onTap: () {
-                        provider.setCurrentChannel(item);
-                      },
-                      leading: CachedNetworkImage(
-                        width: 40,
-                        height: 25,
-                        imageUrl: item.logo ?? '',
-                        errorWidget: (_, __, ___) => Icon(
-                          Icons.tv,
-                          size: 24,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                        ),
-                      ),
-                      title: Text(item.name),
-                    ),
-                  );
-                },
-                itemCount: channels.length,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
 }

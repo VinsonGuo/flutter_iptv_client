@@ -10,7 +10,7 @@ class ChannelSearchDelegate extends SearchDelegate<String> {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: const Icon(Icons.clear),
         onPressed: () {
           query = ''; // Clear the search query
         },
@@ -21,7 +21,7 @@ class ChannelSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back),
       onPressed: () {
         close(context, ''); // Close the search
       },
@@ -33,17 +33,17 @@ class ChannelSearchDelegate extends SearchDelegate<String> {
 
     final channels = context.select((ChannelProvider value) => value.allChannels);
     final results = channels.where((item) => item.name.toLowerCase().contains(query.toLowerCase())).toList();
-
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     return GridView.builder(
       itemBuilder: (context, index) {
         final item = results[index];
         return ChannelListTile(item: item);
       },
       itemCount: results.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           mainAxisSpacing: 5,
           crossAxisSpacing: 5,
-          crossAxisCount: 4, childAspectRatio: 1.2),
+          crossAxisCount: isLandscape ? 4 : 3, childAspectRatio: 1.2),
     );
   }
 

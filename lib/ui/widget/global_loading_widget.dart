@@ -22,8 +22,8 @@ class GlobalLoadingWidget extends StatelessWidget {
             ? Container(
                 color: Colors.black26, // 半透明背景
                 child: Center(
-                  child: LoadingAnimationWidget.stretchedDots(
-                    color: Theme.of(context).colorScheme.secondary,
+                  child: LoadingAnimationWidget.beat(
+                    color: Theme.of(context).colorScheme.primary,
                     size: 60,
                   ),
                 ),

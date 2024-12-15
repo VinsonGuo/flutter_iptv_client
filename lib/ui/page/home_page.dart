@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin{
-  late ScrollController scrollController;
+  ScrollController scrollController = ScrollController();
   ChannelSearchDelegate delegate = ChannelSearchDelegate();
   Null Function()? tabListener;
 
@@ -131,7 +131,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin{
                                   ),
                                   child: Scrollbar(
                                     child: GridView.builder(
-                                      padding: EdgeInsets.only(top: 10),
+                                      padding: const EdgeInsets.only(top: 10),
                                       controller: scrollController,
                                       itemBuilder: (context, index) {
                                         final item = channels[index];

@@ -88,7 +88,7 @@ class _ChannelListTileState extends State<ChannelListTile> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(
-                    bottom: 40, top: 20, left: 10, right: 10),
+                    bottom: 20, top: 10, left: 40, right: 40),
                 child: CachedNetworkImage(
                   width: double.infinity,
                   height: double.infinity,
@@ -102,10 +102,16 @@ class _ChannelListTileState extends State<ChannelListTile> {
               ),
               Align(
                 alignment: const Alignment(0, 0.9),
-                child: Text(widget.item.name,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(widget.item.name,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary)),
+                  ),
+                ),
               ),
               Align(
                 alignment: const Alignment(0.9, -0.9),
@@ -125,6 +131,17 @@ class _ChannelListTileState extends State<ChannelListTile> {
                       )),
                 ),
               ),
+              Align(
+                alignment: const Alignment(-0.8, -0.9),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Image.asset(
+                    'assets/images/flags/${widget.item.country?.toLowerCase()}.png',
+                    height: 12,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              )
             ],
           ),
         );
