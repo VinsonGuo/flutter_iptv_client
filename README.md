@@ -17,7 +17,13 @@
 ### Prerequisites
 
 - Flutter `3.19.6`
-- Create `.env` in project root, and then set `GEMINI_KEY=YOUR GEMINI KEY`
+- Create `key.properties` in android folder, and then set:
+```
+storePassword=your storePassword
+keyPassword=your keyPassword
+keyAlias=your keyAlias
+storeFile=your path
+```
 
 ### Run
 ```
