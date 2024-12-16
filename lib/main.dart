@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
                 visible:
                     MediaQuery.orientationOf(context) == Orientation.portrait,
                 child: AdMobWidget(
-                    adId: bannerHome,
+                    adId: bannerVideo,
                     width: MediaQuery.of(context).size.width.toInt()),
               ),
             )

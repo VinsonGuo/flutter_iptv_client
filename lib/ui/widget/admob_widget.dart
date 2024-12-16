@@ -16,7 +16,7 @@ class AdMobWidget extends StatefulWidget {
 class _AdMobWidgetState extends State<AdMobWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
-  Timer? _refreshTimer;
+  Timer? _retryTimer;
 
   @override
   void initState() {
@@ -24,8 +24,10 @@ class _AdMobWidgetState extends State<AdMobWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadAd();
     });
-    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
-      loadAd();
+    _retryTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
+      if (!_isLoaded) {
+        loadAd();
+      }
     });
   }
 
@@ -60,6 +62,9 @@ class _AdMobWidgetState extends State<AdMobWidget> {
           debugPrint('BannerAd failed to load: $error');
           // Dispose the ad here to free resources.
           ad.dispose();
+          setState(() {
+            _isLoaded = false;
+          });
         },
       ),
     )..load();
@@ -68,7 +73,7 @@ class _AdMobWidgetState extends State<AdMobWidget> {
   @override
   void dispose() {
     _bannerAd?.dispose(); // 释放广告资源
-    _refreshTimer?.cancel(); // 停止定时器
+    _retryTimer?.cancel(); // 停止定时器
     super.dispose();
   }
 }
