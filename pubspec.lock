@@ -437,14 +437,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.0"
-  interactive_media_ads:
-    dependency: "direct main"
-    description:
-      name: interactive_media_ads
-      sha256: "4150578a489e3c18b50959ab9830e48e778207e01131c1613bc918efa3be27f6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.3+3"
   intl:
     dependency: transitive
     description:

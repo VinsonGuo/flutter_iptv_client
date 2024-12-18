@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin{
   void initState() {
     super.initState();
     scrollController = ScrollController();
+    MobAdManager.createInterstitialAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChannelProvider>().getChannels();
     });
