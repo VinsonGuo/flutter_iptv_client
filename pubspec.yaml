@@ -47,7 +47,6 @@ dependencies:
   chewie:
   carousel_slider: ^4.2.1
   tv_channel_widget: ^0.0.1
-  ffmpeg_kit_flutter: 6.0.3-LTS
   flutter_markdown: ^0.7.4+2
   url_launcher: ^6.1.7
   google_mobile_ads: ^5.2.0

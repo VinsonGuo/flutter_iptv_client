@@ -1,9 +1,5 @@
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/common/shared_preference.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,9 +10,6 @@ import 'provider/channel_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FFmpegKitConfig.enableLogCallback((log) {
-    logger.i('ffmpeg: ${log.getMessage()}');
-  });
   sharedPreferences = await SharedPreferences.getInstance();
   MobileAds.instance.initialize();
   if (kDebugMode) {
