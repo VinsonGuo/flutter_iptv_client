@@ -35,7 +35,6 @@ class _VideoPageState extends State<VideoPage> {
   void initState() {
     super.initState();
     WakelockPlus.enable();
-    MobAdManager.createInterstitialAd();
   }
 
   @override
@@ -308,15 +307,13 @@ class _VideoPageState extends State<VideoPage> {
     return SafeArea(
       child: Row(
         children: [
-          const SizedBox(
-            width: 20,
-          ),
           Expanded(
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    const SizedBox(width: 16,),
                     IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.arrow_back_outlined)),
@@ -330,6 +327,7 @@ class _VideoPageState extends State<VideoPage> {
                         color: Theme.of(context).colorScheme.primaryContainer,
                       ),
                     ),
+                    const SizedBox(width: 4,),
                     Expanded(
                         child: Text(
                       channel.name,
@@ -343,9 +341,6 @@ class _VideoPageState extends State<VideoPage> {
                     aspectRatio: 16 / 9,
                     child: chewie,
                   ),
-                ),
-                const SizedBox(
-                  height: 6,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -402,11 +397,14 @@ class _VideoPageState extends State<VideoPage> {
                         child: const Icon(Icons.fullscreen))
                   ],
                 ),
+                const SizedBox(
+                  height: 6,
+                ),
               ],
             ),
           ),
           const SizedBox(
-            width: 20,
+            width: 6,
           ),
           SizedBox(
             width: 280,
@@ -547,6 +545,7 @@ class _VideoPageState extends State<VideoPage> {
                 itemBuilder: (_, index) {
                   final item = channels[index];
                   return ListTile(
+                    dense: true,
                     selected: item.id == channel.id,
                     selectedTileColor: Theme.of(context).colorScheme.onPrimary,
                     selectedColor: Theme.of(context).colorScheme.primary,

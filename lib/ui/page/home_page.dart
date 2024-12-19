@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin{
+class _HomePageState extends State<HomePage> {
   ScrollController scrollController = ScrollController();
   ChannelSearchDelegate delegate = ChannelSearchDelegate();
   Null Function()? tabListener;
@@ -25,8 +25,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
-    scrollController = ScrollController();
-    MobAdManager.createInterstitialAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChannelProvider>().getChannels();
     });

@@ -89,7 +89,7 @@ class AdMobNativeWidget extends StatefulWidget {
 class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
   NativeAd? _nativeAd;
   bool _isLoaded = false;
-  Timer? _retryTimer;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -97,10 +97,8 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadAd();
     });
-    _retryTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
-      if (!_isLoaded) {
-        loadAd();
-      }
+    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
+      loadAd();
     });
   }
 
@@ -147,7 +145,7 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
   @override
   void dispose() {
     _nativeAd?.dispose(); // 释放广告资源
-    _retryTimer?.cancel(); // 停止定时器
+    _refreshTimer?.cancel(); // 停止定时器
     super.dispose();
   }
 }

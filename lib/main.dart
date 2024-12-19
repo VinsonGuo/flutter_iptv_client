@@ -13,8 +13,11 @@ void main() async {
   sharedPreferences = await SharedPreferences.getInstance();
   MobileAds.instance.initialize();
   if (kDebugMode) {
-    MobileAds.instance.updateRequestConfiguration(
-        RequestConfiguration(testDeviceIds: ['3DD79498E0746C0723D53BE3420EBC88']));
+    MobileAds.instance.updateRequestConfiguration(RequestConfiguration(
+        testDeviceIds: [
+          '3DD79498E0746C0723D53BE3420EBC88',
+          'C51B9CF46BE381CDC65FE020F9AF6DF4'
+        ]));
   }
   runApp(const MyApp());
 }
