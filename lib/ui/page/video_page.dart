@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
@@ -23,13 +22,15 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
-  ChewieController? chewieController;
   VideoPlayerController? videoPlayerController;
   ItemScrollController scrollController = ItemScrollController();
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
   Timer? fullscreenInfoDismissTimer;
+  int index = 0;
+  bool isBuffering = false;
+  bool isError = false;
 
   @override
   void initState() {
@@ -45,67 +46,55 @@ class _VideoPageState extends State<VideoPage> {
     final channels = context.select((ChannelProvider value) => value.channels);
     logger.i('video url is ${channel.url}');
     if (lastUrl != channel.url) {
+      setState(() {
+        isBuffering = true;
+        isError = false;
+      });
       videoPlayerController?.dispose();
-      chewieController?.dispose();
       videoPlayerController = VideoPlayerController.networkUrl(
           Uri.parse(channel.url ?? ''),
           httpHeaders: {
             'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'
+          })
+        ..initialize().then((value) {
+          setState(() {
+            isBuffering = false;
+            isError = false;
           });
-      chewieController = ChewieController(
-        aspectRatio: 16 / 9,
-        videoPlayerController: videoPlayerController!,
-        autoInitialize: true,
-        autoPlay: true,
-        showControlsOnInitialize: false,
-        isLive: true,
-        showControls: false,
-        allowFullScreen: false,
-        fullScreenByDefault: false,
-        showOptions: false,
-        allowedScreenSleep: false,
-        allowPlaybackSpeedChanging: false,
-        deviceOrientationsAfterFullScreen: [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight
-        ],
-        deviceOrientationsOnEnterFullScreen: [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight
-        ],
-        errorBuilder: (_, msg) => Container(
-          padding: const EdgeInsets.all(10),
-          alignment: Alignment.center,
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error,
-                size: 24,
-              ),
-              SizedBox(
-                height: 6,
-              ),
-              Text(
-                  "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
-            ],
-          ),
-        ),
-        placeholder: Center(
-            child: LoadingAnimationWidget.beat(
-          color: Theme.of(context).colorScheme.primary,
-          size: 60,
-        )),
-        bufferingBuilder: (_) => Center(
-            child: LoadingAnimationWidget.beat(
-          color: Theme.of(context).colorScheme.primary,
-          size: 60,
-        )),
-      );
+        }).catchError((e) {
+          setState(() {
+            isBuffering = false;
+            isError = true;
+          });
+        });
+      videoPlayerController?.play();
+
+      videoPlayerController!.addListener(() {
+        if (videoPlayerController!.value.hasError) {
+          setState(() {
+            isError = true;
+            isBuffering = false;
+          });
+          debugPrint('视频播放错误');
+        } else if (!videoPlayerController!.value.isInitialized ||
+            videoPlayerController!.value.isBuffering) {
+          setState(() {
+            isError = false;
+            isBuffering = true;
+          });
+          debugPrint('视频正在缓冲...');
+        } else if (videoPlayerController!.value.isPlaying) {
+          setState(() {
+            isError = false;
+            isBuffering = false;
+          });
+          debugPrint("视频正在播放");
+        }
+      });
       _showFullscreenInfo(channel);
 
-      final index = channels.indexOf(channel);
+      index = channels.indexOf(channel);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (index >= 0 && scrollController.isAttached) {
           scrollController.scrollTo(
@@ -114,9 +103,70 @@ class _VideoPageState extends State<VideoPage> {
       });
     }
     lastUrl = channel.url;
-    final chewie = Chewie(
-      controller: chewieController!,
-    );
+    final videoPlayer = AspectRatio(
+        aspectRatio: videoPlayerController!.value.isInitialized
+            ? videoPlayerController!.value.aspectRatio
+            : 16 / 9,
+        child: Stack(
+          children: [
+            videoPlayerController!.value.isInitialized
+                ? VideoPlayer(
+                    videoPlayerController!,
+                  )
+                : Container(
+                    color: Colors.black,
+                    child: isBuffering
+                        ? Center(
+                            child: LoadingAnimationWidget.beat(
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 60,
+                          ))
+                        : Container(
+                            padding: const EdgeInsets.all(10),
+                            alignment: Alignment.center,
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error,
+                                  size: 24,
+                                ),
+                                SizedBox(
+                                  height: 6,
+                                ),
+                                Text(
+                                    "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
+                              ],
+                            ),
+                          ),
+                  ),
+            // if (isBuffering)
+            //   Center(
+            //       child: LoadingAnimationWidget.beat(
+            //     color: Theme.of(context).colorScheme.primary,
+            //     size: 60,
+            //   ))
+            // else if (isError)
+            //   Container(
+            //     padding: const EdgeInsets.all(10),
+            //     alignment: Alignment.center,
+            //     child: const Column(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       children: [
+            //         Icon(
+            //           Icons.error,
+            //           size: 24,
+            //         ),
+            //         SizedBox(
+            //           height: 6,
+            //         ),
+            //         Text(
+            //             "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
+            //       ],
+            //     ),
+            //   )
+          ],
+        ));
 
     if (isFullscreen) {
       return PopScope(
@@ -125,15 +175,10 @@ class _VideoPageState extends State<VideoPage> {
           if (didPop) {
             return;
           }
-          if (isFullscreen) {
-            setState(() {
-              isFullscreen = false;
-            });
-            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-            SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-          }
+          exitFullscreen();
         },
         child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () {
             _showFullscreenInfo(channel);
           },
@@ -158,7 +203,7 @@ class _VideoPageState extends State<VideoPage> {
               backgroundColor: Colors.black,
               body: Stack(
                 children: [
-                  chewie,
+                  Align(alignment: Alignment.center, child: videoPlayer),
                   AnimatedOpacity(
                     opacity: showFullscreenInfo ? 1 : 0,
                     duration: const Duration(milliseconds: 200),
@@ -167,15 +212,7 @@ class _VideoPageState extends State<VideoPage> {
                       child: InkWell(
                           canRequestFocus: false,
                           onTap: () {
-                            if (isFullscreen) {
-                              setState(() {
-                                isFullscreen = false;
-                              });
-                              SystemChrome.setEnabledSystemUIMode(
-                                  SystemUiMode.edgeToEdge);
-                              SystemChrome.setPreferredOrientations(
-                                  DeviceOrientation.values);
-                            }
+                            exitFullscreen();
                           },
                           child: const Icon(Icons.arrow_back_outlined)),
                     ),
@@ -186,7 +223,8 @@ class _VideoPageState extends State<VideoPage> {
                     child: Align(
                       alignment: const Alignment(0, 0.9),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.black45,
                           borderRadius: BorderRadius.circular(12),
@@ -273,11 +311,27 @@ class _VideoPageState extends State<VideoPage> {
             : null,
         body: OrientationBuilder(builder: (context, orientation) {
           if (orientation == Orientation.portrait) {
-            return portraitPage(provider, chewie, channels, channel);
+            return portraitPage(provider, videoPlayer, channels, channel);
           }
-          return landscapePage(provider, chewie, channels, channel);
+          return landscapePage(provider, videoPlayer, channels, channel);
         }),
       );
+    }
+  }
+
+  void exitFullscreen() {
+    if (isFullscreen) {
+      setState(() {
+        isFullscreen = false;
+      });
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (index >= 0 && scrollController.isAttached) {
+          scrollController.scrollTo(
+              index: index, duration: const Duration(milliseconds: 200));
+        }
+      });
     }
   }
 
@@ -298,11 +352,10 @@ class _VideoPageState extends State<VideoPage> {
     super.dispose();
     WakelockPlus.disable();
     videoPlayerController?.dispose();
-    chewieController?.dispose();
     fullscreenInfoDismissTimer?.cancel();
   }
 
-  Widget landscapePage(ChannelProvider provider, Widget chewie,
+  Widget landscapePage(ChannelProvider provider, Widget videoPlayer,
       List<Channel> channels, Channel channel) {
     return SafeArea(
       child: Row(
@@ -313,7 +366,9 @@ class _VideoPageState extends State<VideoPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const SizedBox(width: 16,),
+                    const SizedBox(
+                      width: 16,
+                    ),
                     IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.arrow_back_outlined)),
@@ -327,7 +382,9 @@ class _VideoPageState extends State<VideoPage> {
                         color: Theme.of(context).colorScheme.primaryContainer,
                       ),
                     ),
-                    const SizedBox(width: 4,),
+                    const SizedBox(
+                      width: 4,
+                    ),
                     Expanded(
                         child: Text(
                       channel.name,
@@ -336,11 +393,9 @@ class _VideoPageState extends State<VideoPage> {
                     )),
                   ],
                 ),
+                // videoPlayer,
                 Expanded(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: chewie,
-                  ),
+                  child: Center(child: videoPlayer),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -384,15 +439,7 @@ class _VideoPageState extends State<VideoPage> {
                     FilledButton(
                         autofocus: true,
                         onPressed: () {
-                          setState(() {
-                            isFullscreen = true;
-                          });
-                          SystemChrome.setEnabledSystemUIMode(
-                              SystemUiMode.immersive);
-                          SystemChrome.setPreferredOrientations([
-                            DeviceOrientation.landscapeLeft,
-                            DeviceOrientation.landscapeRight,
-                          ]);
+                          enterFullscreen();
                         },
                         child: const Icon(Icons.fullscreen))
                   ],
@@ -468,7 +515,7 @@ class _VideoPageState extends State<VideoPage> {
     );
   }
 
-  Widget portraitPage(ChannelProvider provider, Widget chewie,
+  Widget portraitPage(ChannelProvider provider, Widget videoPlayer,
           List<Channel> channels, Channel channel) =>
       SafeArea(
         top: false,
@@ -482,10 +529,7 @@ class _VideoPageState extends State<VideoPage> {
                   const SizedBox(
                     width: 20,
                   ),
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: chewie,
-                  ),
+                  videoPlayer,
                   const SizedBox(
                     height: 10,
                   ),
@@ -494,7 +538,8 @@ class _VideoPageState extends State<VideoPage> {
                     children: [
                       FilledButton(
                           onPressed: () {
-                            provider.setFavorite(channel.id, !channel.isFavorite);
+                            provider.setFavorite(
+                                channel.id, !channel.isFavorite);
                           },
                           child: Icon(
                             channel.isFavorite ? Icons.star : Icons.star_border,
@@ -520,15 +565,7 @@ class _VideoPageState extends State<VideoPage> {
                       FilledButton(
                           autofocus: true,
                           onPressed: () {
-                            setState(() {
-                              isFullscreen = true;
-                            });
-                            SystemChrome.setEnabledSystemUIMode(
-                                SystemUiMode.immersive);
-                            SystemChrome.setPreferredOrientations([
-                              DeviceOrientation.landscapeLeft,
-                              DeviceOrientation.landscapeRight,
-                            ]);
+                            enterFullscreen();
                           },
                           child: const Icon(Icons.fullscreen))
                     ],
@@ -586,4 +623,15 @@ class _VideoPageState extends State<VideoPage> {
           ],
         ),
       );
+
+  void enterFullscreen() {
+    setState(() {
+      isFullscreen = true;
+    });
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
 }

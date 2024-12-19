@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
+import 'package:flutter_iptv_client/ui/page/select_seed_color_page.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,6 +51,13 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               ListTile(
                 onTap: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SelectSeedColorPage()));
+                },
+                title: const Text('Theme'),
+              ),
+              ListTile(
+                onTap: () {
                   launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_iptv_client"));
                 },
                 title: const Text('Google Play'),
@@ -64,7 +73,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ));
                 },
                 title: const Text('Feedback'),
-                subtitle: const Text('guoziwei93@gmail.com'),
               ),
               AboutListTile(
                 applicationName: appName,
@@ -73,6 +81,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   Text("UniTV is a Flutter-based application that allows users to watch 10000+ TV channels from any country. The app provides a seamless experience with features like remote-control integration, import m3u8 playlist, video playback, and an intuitive user interface."),
                 ],
               ),
+              const Divider(),
+              const ListTile(
+                title: Text('Our Products'),
+              ),
+              ListTile(
+                leading: Image.asset('assets/images/icon-nutrimeter.png'),
+                title: const Text('NutriMeter Calorie Calculator'),
+                subtitle: const Text('Snap a pic of your food, and NutriMeter instantly breaks down its nutrients'),
+                onTap: () {
+                  launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_calorie_calculator"));
+                },
+              )
+
+
             ],
           ),
           Visibility(

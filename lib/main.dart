@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'provider/settings_provider.dart';
 import 'ui/page/home_page.dart';
 import 'provider/channel_provider.dart';
 
@@ -31,8 +32,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ChannelProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       builder: (context, child) {
+        final seedColor = context.select((SettingsProvider value) => value.seedColor);
         return MaterialApp(
           title: 'IPTV Player',
           themeMode: ThemeMode.dark,
@@ -48,7 +51,7 @@ class MyApp extends StatelessWidget {
               )
             ),
             colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple, brightness: Brightness.dark),
+                seedColor: seedColor, brightness: Brightness.dark),
             useMaterial3: true,
           ),
           home: const HomePage(),
