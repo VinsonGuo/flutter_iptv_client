@@ -28,7 +28,7 @@ class SelectSeedColorPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10,),
-                  Text(color.key),
+                  Text(color.key.toUpperCase()),
                 ],
               ),
               value: color.value.value,

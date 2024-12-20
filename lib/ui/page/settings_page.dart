@@ -86,7 +86,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text('Our Products'),
               ),
               ListTile(
-                leading: Image.asset('assets/images/icon-nutrimeter.png'),
+                dense: true,
+                leading: Image.asset('assets/images/icon-nutrimeter.png', width: 40, height: 40,),
                 title: const Text('NutriMeter Calorie Calculator'),
                 subtitle: const Text('Snap a pic of your food, and NutriMeter instantly breaks down its nutrients'),
                 onTap: () {
