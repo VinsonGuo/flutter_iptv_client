@@ -150,7 +150,7 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
   }
 }
 
-class MobAdManager {
+class AdmobManager {
   static InterstitialAd? _interstitialAd;
   static int _numInterstitialLoadAttempts = 0;
   static const AdRequest request = AdRequest();

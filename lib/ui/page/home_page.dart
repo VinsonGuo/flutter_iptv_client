@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/common/data.dart';
+import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:flutter_iptv_client/ui/page/country_page.dart';
 import 'package:flutter_iptv_client/ui/page/settings_page.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
@@ -25,6 +26,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    final settingsProvider = context.read<SettingsProvider>();
+    if (!settingsProvider.hasConsent) {
+      settingsProvider.updateConsent();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChannelProvider>().getChannels();
     });
