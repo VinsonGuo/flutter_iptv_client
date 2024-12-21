@@ -69,29 +69,6 @@ class _VideoPageState extends State<VideoPage> {
           });
         });
       videoPlayerController?.play();
-
-      videoPlayerController!.addListener(() {
-        if (videoPlayerController!.value.hasError) {
-          setState(() {
-            isError = true;
-            isBuffering = false;
-          });
-          debugPrint('视频播放错误');
-        } else if (!videoPlayerController!.value.isInitialized ||
-            videoPlayerController!.value.isBuffering) {
-          setState(() {
-            isError = false;
-            isBuffering = true;
-          });
-          debugPrint('视频正在缓冲...');
-        } else if (videoPlayerController!.value.isPlaying) {
-          setState(() {
-            isError = false;
-            isBuffering = false;
-          });
-          debugPrint("视频正在播放");
-        }
-      });
       _showFullscreenInfo(channel);
 
       index = channels.indexOf(channel);
@@ -107,65 +84,38 @@ class _VideoPageState extends State<VideoPage> {
         aspectRatio: videoPlayerController!.value.isInitialized
             ? videoPlayerController!.value.aspectRatio
             : 16 / 9,
-        child: Stack(
-          children: [
-            videoPlayerController!.value.isInitialized
-                ? VideoPlayer(
-                    videoPlayerController!,
-                  )
-                : Container(
-                    color: Colors.black,
-                    child: isBuffering
-                        ? Center(
-                            child: LoadingAnimationWidget.beat(
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 60,
-                          ))
-                        : Container(
-                            padding: const EdgeInsets.all(10),
-                            alignment: Alignment.center,
-                            child: const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error,
-                                  size: 24,
-                                ),
-                                SizedBox(
-                                  height: 6,
-                                ),
-                                Text(
-                                    "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
-                              ],
-                            ),
-                          ),
+        child: Container(
+          color: Colors.black,
+          child: Stack(
+            children: [
+              VideoPlayer(videoPlayerController!,),
+              if (isBuffering)
+                Center(
+                    child: LoadingAnimationWidget.beat(
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 60,
+                ))
+              else if (isError)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  alignment: Alignment.center,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error,
+                        size: 24,
+                      ),
+                      SizedBox(
+                        height: 6,
+                      ),
+                      Text(
+                          "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
+                    ],
                   ),
-            // if (isBuffering)
-            //   Center(
-            //       child: LoadingAnimationWidget.beat(
-            //     color: Theme.of(context).colorScheme.primary,
-            //     size: 60,
-            //   ))
-            // else if (isError)
-            //   Container(
-            //     padding: const EdgeInsets.all(10),
-            //     alignment: Alignment.center,
-            //     child: const Column(
-            //       mainAxisAlignment: MainAxisAlignment.center,
-            //       children: [
-            //         Icon(
-            //           Icons.error,
-            //           size: 24,
-            //         ),
-            //         SizedBox(
-            //           height: 6,
-            //         ),
-            //         Text(
-            //             "The selected channel is currently not available. This might be due to a temporary issue or Geo-blocked. Please try refreshing the page or importing a valid custom playlist URL."),
-            //       ],
-            //     ),
-            //   )
-          ],
+                )
+            ],
+          ),
         ));
 
     if (isFullscreen) {
@@ -457,6 +407,7 @@ class _VideoPageState extends State<VideoPage> {
             width: 280,
             child: Column(
               children: [
+                const AdMobNativeWidget(),
                 Expanded(
                   child: ScrollablePositionedList.builder(
                     itemScrollController: scrollController,
@@ -506,7 +457,6 @@ class _VideoPageState extends State<VideoPage> {
                     itemCount: channels.length,
                   ),
                 ),
-                const AdMobNativeWidget(),
               ],
             ),
           ),
@@ -619,7 +569,6 @@ class _VideoPageState extends State<VideoPage> {
                 itemCount: channels.length,
               ),
             ),
-            const AdMobNativeWidget(),
           ],
         ),
       );
