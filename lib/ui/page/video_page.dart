@@ -97,6 +97,7 @@ class _VideoPageState extends State<VideoPage> {
                 ))
               else if (isError)
                 Container(
+                  color: Colors.black,
                   padding: const EdgeInsets.all(10),
                   alignment: Alignment.center,
                   child: const Column(
@@ -569,6 +570,7 @@ class _VideoPageState extends State<VideoPage> {
                 itemCount: channels.length,
               ),
             ),
+            const AdMobNativeWidget(),
           ],
         ),
       );

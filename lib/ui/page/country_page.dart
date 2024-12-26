@@ -13,7 +13,7 @@ class CountryPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Channel Country/Region')),
       body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.width ~/ 100),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.width ~/ 80),
         itemBuilder: (_, index) {
           final item = allCountries[index];
           return ListTile(

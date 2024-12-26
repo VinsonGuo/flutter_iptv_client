@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/common/data.dart';
+import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 const int maxFailedLoadAttempts = 3;
@@ -97,7 +98,7 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadAd();
     });
-    _refreshTimer = Timer.periodic(const Duration(minutes: 3), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
       loadAd();
     });
   }
@@ -109,15 +110,16 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
           ? const SizedBox.shrink()
           : SizedBox(
               width: double.infinity,
-              height: 80,
+              height: 90,
               child: AdWidget(ad: _nativeAd!)),
     );
   }
 
   void loadAd() {
+    logger.i('loadAd AdMobNative');
     _nativeAd?.dispose();
     _nativeAd = NativeAd(
-      adUnitId: 'ca-app-pub-1990824556833029/2825754758',
+      adUnitId: nativeAd,
       nativeTemplateStyle:
           NativeTemplateStyle(templateType: TemplateType.small),
       request: const AdRequest(),
@@ -146,6 +148,72 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
   void dispose() {
     _nativeAd?.dispose(); // 释放广告资源
     _refreshTimer?.cancel(); // 停止定时器
+    super.dispose();
+  }
+}
+
+class AdMobNativeVideoWidget extends StatefulWidget {
+  const AdMobNativeVideoWidget({super.key});
+
+  @override
+  State<AdMobNativeVideoWidget> createState() => _AdMobNativeVideoWidgetState();
+}
+
+class _AdMobNativeVideoWidgetState extends State<AdMobNativeVideoWidget> {
+  NativeAd? _nativeAd;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadAd();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: !_isLoaded
+          ? const SizedBox.shrink()
+          : SizedBox(
+          width: double.infinity,
+          height: 300,
+          child: AdWidget(ad: _nativeAd!)),
+    );
+  }
+
+  void loadAd() {
+    _nativeAd?.dispose();
+    _nativeAd = NativeAd(
+      adUnitId: nativeAdVideo,
+      nativeTemplateStyle:
+      NativeTemplateStyle(templateType: TemplateType.medium),
+      request: const AdRequest(),
+      listener: NativeAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (ad) {
+          debugPrint('$ad loaded.');
+          setState(() {
+            _isLoaded = true;
+          });
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('NativeAd failed to load: $error');
+          // Dispose the ad here to free resources.
+          ad.dispose();
+          setState(() {
+            _isLoaded = false;
+          });
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _nativeAd?.dispose(); // 释放广告资源
     super.dispose();
   }
 }

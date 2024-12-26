@@ -84,12 +84,6 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () {
-                        context.read<ChannelProvider>().getChannels();
-                      },
-                    ),
-                    IconButton(
                         onPressed: () {
                           Navigator.of(context).push(
                               MaterialPageRoute(builder: (_) => const SettingsPage()));
@@ -193,12 +187,6 @@ class _HomePageState extends State<HomePage> {
                       context: context,
                       delegate: delegate,
                     );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    context.read<ChannelProvider>().getChannels();
                   },
                 ),
                 IconButton(

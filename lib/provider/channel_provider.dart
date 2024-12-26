@@ -34,9 +34,6 @@ class ChannelProvider with ChangeNotifier {
   }
 
   Future<bool> importFromUrl(String url) async {
-    if (url.isEmpty || !url.contains('.m3u')) {
-      return false;
-    }
     sharedPreferences.setString(m3u8UrlKey, url);
     final result = await getChannels();
     if (result) {

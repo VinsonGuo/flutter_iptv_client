@@ -5,3 +5,5 @@ const channelLanguage = ["all", "spa","fra","dan","por","bul","rus","nld","eng",
 const bannerHome = "ca-app-pub-1990824556833029/8865250198";
 const bannerVideo = "ca-app-pub-1990824556833029/8680964081";
 const splashAd = "ca-app-pub-1990824556833029/9343061642";
+const nativeAd = 'ca-app-pub-1990824556833029/2825754758';
+const nativeAdVideo = 'ca-app-pub-1990824556833029/3389366113';
