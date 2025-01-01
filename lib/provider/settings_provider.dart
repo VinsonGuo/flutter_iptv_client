@@ -3,27 +3,33 @@ import 'package:flutter_iptv_client/common/shared_preference.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class SettingsProvider with ChangeNotifier {
-  Color seedColor = Color(sharedPreferences.getInt(seedColorKey) ?? Colors.deepPurple.value);
-
   static const seedColorKey = 'seedColorKey';
+  static const videoRatioKey = 'videoRatioKey';
+  static const videoRatio16to9 = 'videoRatio16to9';
+  static const videoRatioOriginal = 'videoRatioOriginal';
+
+  Color seedColor =
+      Color(sharedPreferences.getInt(seedColorKey) ?? Colors.deepPurple.value);
+
+  bool is16to9 = sharedPreferences.getString(videoRatioKey) == videoRatio16to9;
 
   static const seedColorMap = {
-    'deepPurple':Colors.deepPurple,
-    'indigo':Colors.indigo,
-    'blue':Colors.blue,
-    'green':Colors.green,
-    'lime':Colors.lime,
-    'red':Colors.red,
-    'pink':Colors.pink,
-    'orange':Colors.orange,
-    'cyan':Colors.cyan,
-    'teal':Colors.teal,
+    'deepPurple': Colors.deepPurple,
+    'indigo': Colors.indigo,
+    'blue': Colors.blue,
+    'green': Colors.green,
+    'lime': Colors.lime,
+    'red': Colors.red,
+    'pink': Colors.pink,
+    'orange': Colors.orange,
+    'cyan': Colors.cyan,
+    'teal': Colors.teal,
   };
 
   ConsentStatus? status;
 
-  bool get hasConsent => status == ConsentStatus.obtained || status == ConsentStatus.notRequired;
-
+  bool get hasConsent =>
+      status == ConsentStatus.obtained || status == ConsentStatus.notRequired;
 
   SettingsProvider() {
     ConsentInformation.instance.getConsentStatus().then((status) {
@@ -38,6 +44,12 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setVideoRatio(String ratio) {
+    is16to9 = ratio == videoRatio16to9;
+    sharedPreferences.setString(videoRatioKey, ratio);
+    notifyListeners();
+  }
+
   void updateConsent() {
     final params = ConsentRequestParameters(
       tagForUnderAgeOfConsent: false,
@@ -47,24 +59,26 @@ class SettingsProvider with ChangeNotifier {
     );
     ConsentInformation.instance.requestConsentInfoUpdate(
       params,
-          () async {
-        if (await ConsentInformation.instance.isConsentFormAvailable()) _loadForm();
+      () async {
+        if (await ConsentInformation.instance.isConsentFormAvailable()) {
+          _loadForm();
+        }
       },
-          (FormError error) {},
+      (FormError error) {},
     );
   }
 
   void _loadForm() {
     ConsentForm.loadConsentForm(
-          (consentForm) async {
+      (consentForm) async {
         status = await ConsentInformation.instance.getConsentStatus();
         if (status == ConsentStatus.required) {
           consentForm.show(
-                (formError) => _loadForm(),
+            (formError) => _loadForm(),
           );
         }
       },
-          (formError) {},
+      (formError) {},
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
 import 'package:flutter_iptv_client/ui/page/select_seed_color_page.dart';
+import 'package:flutter_iptv_client/ui/page/video_settings_page.dart';
 import 'package:flutter_iptv_client/ui/widget/global_loading_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -64,6 +65,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     MaterialPageRoute(builder: (_) => const SelectSeedColorPage()));
               },
               title: const Text('Theme'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.ondemand_video),
+              onTap: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const VideoSettingsPage()));
+              },
+              title: const Text('Video Settings'),
             ),
             ListTile(
               leading: const Icon(Icons.store),
