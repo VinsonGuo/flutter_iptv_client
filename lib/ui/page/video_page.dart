@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_iptv_client/common/logger.dart';
 import 'package:flutter_iptv_client/model/channel.dart';
+import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -43,6 +44,8 @@ class _VideoPageState extends State<VideoPage> {
     final provider = context.read<ChannelProvider>();
     final channel =
         context.select((ChannelProvider value) => value.currentChannel)!;
+    final is16to9 =
+      context.select((SettingsProvider value) => value.is16to9);
     final channels = context.select((ChannelProvider value) => value.channels);
     logger.i('video url is ${channel.url}');
     if (lastUrl != channel.url) {
@@ -80,10 +83,12 @@ class _VideoPageState extends State<VideoPage> {
       });
     }
     lastUrl = channel.url;
+    final originalRatio = videoPlayerController!.value.isInitialized
+        ? videoPlayerController!.value.aspectRatio
+        : 16 / 9;
+    final aspectRatio = is16to9 ? 16 / 9 : originalRatio;
     final videoPlayer = AspectRatio(
-        aspectRatio: videoPlayerController!.value.isInitialized
-            ? videoPlayerController!.value.aspectRatio
-            : 16 / 9,
+        aspectRatio: aspectRatio,
         child: Container(
           color: Colors.black,
           child: Stack(
