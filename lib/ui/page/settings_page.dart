@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
@@ -74,13 +76,14 @@ class _SettingsPageState extends State<SettingsPage> {
               },
               title: const Text('Video Settings'),
             ),
-            ListTile(
-              leading: const Icon(Icons.store),
-              onTap: () {
-                launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_iptv_client"));
-              },
-              title: const Text('Google Play'),
-            ),
+            if (Platform.isAndroid)
+              ListTile(
+                leading: const Icon(Icons.store),
+                onTap: () {
+                  launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=com.vinsonguo.flutter_iptv_client"));
+                },
+                title: const Text('Google Play'),
+              ),
             ListTile(
               leading: const Icon(Icons.feedback),
               onTap: () {

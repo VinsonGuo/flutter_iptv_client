@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/common/data.dart';
@@ -119,7 +120,7 @@ class _AdMobNativeWidgetState extends State<AdMobNativeWidget> {
     logger.i('loadAd AdMobNative');
     _nativeAd?.dispose();
     _nativeAd = NativeAd(
-      adUnitId: nativeAd,
+      adUnitId: Platform.isAndroid ? nativeAd: nativeAdIOS,
       nativeTemplateStyle:
           NativeTemplateStyle(templateType: TemplateType.small),
       request: const AdRequest(),
