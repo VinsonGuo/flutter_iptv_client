@@ -45,8 +45,10 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.playlist_add),
-              title: const Text('Select m3u8 url'),
-              subtitle: Text('current url: $currentUrl'),
+              title: const Text('Select M3U Playlist'),
+              subtitle: Text(currentUrl == null || currentUrl.isEmpty
+                  ? 'Please Select M3U Playlist'
+                  : 'current url: $currentUrl'),
               autofocus: true,
               onTap: () {
                 Navigator.of(context).push(

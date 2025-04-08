@@ -30,22 +30,24 @@ class ChannelProvider with ChangeNotifier {
   static const m3u8UrlListKey = 'm3u8UrlListKey';
 
   Future<void> resetM3UContent() async {
-    await importFromUrl(defaultM3u8Url);
+    await importFromUrl(defaultM3u8Urls[0]);
   }
 
   Future<bool> importFromUrl(String url) async {
+    final lastUrl = currentUrl;
     sharedPreferences.setString(m3u8UrlKey, url);
     final result = await getChannels();
     if (result) {
       resetFilter();
       if (!m3u8UrlList.contains(url)) {
-        m3u8UrlList.add(url);
+        m3u8UrlList = [...m3u8UrlList, url];
         sharedPreferences.setStringList(m3u8UrlListKey, m3u8UrlList);
-        notifyListeners();
       }
     } else {
-      sharedPreferences.setString(m3u8UrlKey, currentUrl ?? defaultM3u8Url);
+      sharedPreferences.setString(m3u8UrlKey, lastUrl ?? '');
+      currentUrl = lastUrl;
     }
+    notifyListeners();
     return result;
   }
 
@@ -64,16 +66,18 @@ class ChannelProvider with ChangeNotifier {
     notifyListeners();
     favoriteList = sharedPreferences.getStringList(favoriteListKey) ?? [];
     country = sharedPreferences.getString(countryKey) ?? 'all';
-    m3u8UrlList = sharedPreferences.getStringList(m3u8UrlListKey) ?? [defaultM3u8Url];
-    try {
-      final url = sharedPreferences.getString(m3u8UrlKey) ?? defaultM3u8Url;
-      final response = await sharedDio.get(url);
-      String m3uContent = response.data.toString();
-      await _parseChannels(m3uContent);
-      currentUrl = url;
-    } catch (e) {
-      logger.e('getChannels failed', error: e);
-      result = false;
+    m3u8UrlList = sharedPreferences.getStringList(m3u8UrlListKey) ?? defaultM3u8Urls;
+    final url = sharedPreferences.getString(m3u8UrlKey);
+    currentUrl = url;
+    if (url != null && url.isNotEmpty) {
+      try {
+        final response = await sharedDio.get(url);
+        String m3uContent = response.data.toString();
+        await _parseChannels(m3uContent);
+      } catch (e) {
+        logger.e('getChannels failed', error: e);
+        result = false;
+      }
     }
     loading = false;
     notifyListeners();

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   VideoPlayerController? videoPlayerController;
   ItemScrollController scrollController = ItemScrollController();
+  ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
   bool isFullscreen = false;
   bool showFullscreenInfo = false;
   String? lastUrl;
@@ -39,6 +41,30 @@ class _VideoPageState extends State<VideoPage> {
     WakelockPlus.enable();
   }
 
+  void scrollToIndexIfNeeded(List<Channel> channels, int index) {
+    if (!scrollController.isAttached) return;
+
+    final visibleItems = itemPositionsListener.itemPositions.value;
+    final int visibleCount;
+    if (visibleItems.isEmpty) {
+      visibleCount = 4;
+    } else {
+      final firstVisibleIndex = visibleItems.first.index;
+      final lastVisibleIndex = visibleItems.last.index;
+      logger.i(
+          'firstVisibleIndex: $firstVisibleIndex, lastVisibleIndex: $lastVisibleIndex');
+      visibleCount = lastVisibleIndex - firstVisibleIndex;
+    }
+
+
+    if (index >= visibleCount) {
+      scrollController.scrollTo(
+        index: max(0, min(index, channels.length - visibleCount - 1)),
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.read<ChannelProvider>();
@@ -47,19 +73,25 @@ class _VideoPageState extends State<VideoPage> {
     final is16to9 =
       context.select((SettingsProvider value) => value.is16to9);
     final channels = context.select((ChannelProvider value) => value.channels);
-    logger.i('video url is ${channel.url}');
+    logger.i('video url is: ${channel.url}');
+    logger.i('video userAgent is: ${channel.httpUserAgent}');
+    logger.i('video referer is: ${channel.httpUserReferer}');
     if (lastUrl != channel.url) {
       setState(() {
         isBuffering = true;
         isError = false;
       });
       videoPlayerController?.dispose();
+      final headers = <String,String>{};
+      if (channel.httpUserReferer != null) {
+        headers['Referer'] = channel.httpUserReferer!;
+      }
+      if (channel.httpUserAgent != null) {
+        headers['User-Agent'] = channel.httpUserAgent!;
+      }
       videoPlayerController = VideoPlayerController.networkUrl(
           Uri.parse(channel.url ?? ''),
-          httpHeaders: {
-            'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Safari/537.36'
-          })
+          httpHeaders: headers)
         ..initialize().then((value) {
           setState(() {
             isBuffering = false;
@@ -76,10 +108,7 @@ class _VideoPageState extends State<VideoPage> {
 
       index = channels.indexOf(channel);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (index >= 0 && scrollController.isAttached) {
-          scrollController.scrollTo(
-              index: index, duration: const Duration(milliseconds: 200));
-        }
+        scrollToIndexIfNeeded(channels, index);
       });
     }
     lastUrl = channel.url;
@@ -131,7 +160,7 @@ class _VideoPageState extends State<VideoPage> {
           if (didPop) {
             return;
           }
-          exitFullscreen();
+          exitFullscreen(channels);
         },
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -168,7 +197,7 @@ class _VideoPageState extends State<VideoPage> {
                       child: InkWell(
                           canRequestFocus: false,
                           onTap: () {
-                            exitFullscreen();
+                            exitFullscreen(channels);
                           },
                           child: const Icon(Icons.arrow_back_outlined)),
                     ),
@@ -275,7 +304,7 @@ class _VideoPageState extends State<VideoPage> {
     }
   }
 
-  void exitFullscreen() {
+  void exitFullscreen(List<Channel> channels) {
     if (isFullscreen) {
       setState(() {
         isFullscreen = false;
@@ -283,10 +312,7 @@ class _VideoPageState extends State<VideoPage> {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (index >= 0 && scrollController.isAttached) {
-          scrollController.scrollTo(
-              index: index, duration: const Duration(milliseconds: 200));
-        }
+        scrollToIndexIfNeeded(channels, index);
       });
     }
   }
@@ -417,6 +443,7 @@ class _VideoPageState extends State<VideoPage> {
                 Expanded(
                   child: ScrollablePositionedList.builder(
                     itemScrollController: scrollController,
+                    itemPositionsListener: itemPositionsListener,
                     itemBuilder: (_, index) {
                       final item = channels[index];
                       return ListTile(
@@ -535,6 +562,7 @@ class _VideoPageState extends State<VideoPage> {
             Expanded(
               child: ScrollablePositionedList.builder(
                 itemScrollController: scrollController,
+                itemPositionsListener: itemPositionsListener,
                 itemBuilder: (_, index) {
                   final item = channels[index];
                   return ListTile(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iptv_client/common/data.dart';
 import 'package:flutter_iptv_client/provider/settings_provider.dart';
 import 'package:flutter_iptv_client/ui/page/country_page.dart';
+import 'package:flutter_iptv_client/ui/page/select_m3u8_page.dart';
 import 'package:flutter_iptv_client/ui/page/settings_page.dart';
 import 'package:flutter_iptv_client/ui/widget/admob_widget.dart';
 import 'package:flutter_iptv_client/ui/widget/channel_search_delegate.dart';
@@ -43,6 +44,7 @@ class _HomePageState extends State<HomePage> {
     final allCategories = context.select((ChannelProvider value) => value.allCategories);
     final category = context.select((ChannelProvider value) => value.category);
     final country = context.select((ChannelProvider value) => value.country);
+    final currentUrl = context.select((ChannelProvider value) => value.currentUrl);
     return GlobalLoadingWidget(
       child: OrientationBuilder(
         builder: (context, orientation) {
@@ -114,39 +116,56 @@ class _HomePageState extends State<HomePage> {
                     return Column(
                       children: [
                         Expanded(
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Visibility(
-                                  visible: loading || allChannels.isNotEmpty,
-                                  replacement: Center(
-                                    child: FilledButton(
-                                      onPressed: () {
-                                        context.read<ChannelProvider>().getChannels();
-                                      },
-                                      child: const Text('Try Again'),
+                          child: Builder(
+                            builder: (context) {
+                              if (currentUrl == null || currentUrl.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('Unitv is an IPTV player and does not provide video content. You can select a playlist from the integrated list or import your own.',textAlign: TextAlign.center,),
+                                        const SizedBox(height: 20,),
+                                        FilledButton(
+                                          onPressed: () {
+                                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectM3u8Page()));
+                                          },
+                                          child: const Text('Select M3U Playlist'),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: Scrollbar(
-                                    child: GridView.builder(
-                                      padding: const EdgeInsets.only(top: 10),
-                                      controller: scrollController,
-                                      itemBuilder: (context, index) {
-                                        final item = channels[index];
-                                        return ChannelListTile(item: item);
-                                      },
-                                      itemCount: channels.length,
-                                      gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                          mainAxisSpacing: 5,
-                                          crossAxisSpacing: 5,
-                                          crossAxisCount: 3,
-                                          childAspectRatio: 1.2),
-                                    ),
+                                );
+                              } else if (!loading && allChannels.isEmpty) {
+                                return Center(
+                                  child: FilledButton(
+                                    onPressed: () {
+                                      context.read<ChannelProvider>().getChannels();
+                                    },
+                                    child: const Text('Try Again'),
                                   ),
-                                ),
-                              )
-                            ],
+                                );
+                              } else {
+                                return Scrollbar(
+                                  child: GridView.builder(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    controller: scrollController,
+                                    itemBuilder: (context, index) {
+                                      final item = channels[index];
+                                      return ChannelListTile(item: item);
+                                    },
+                                    itemCount: channels.length,
+                                    gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                        mainAxisSpacing: 5,
+                                        crossAxisSpacing: 5,
+                                        crossAxisCount: 3,
+                                        childAspectRatio: 1.2),
+                                  ),
+                                );
+                              }
+                            }
                           ),
                         ),
                       ],
@@ -224,38 +243,55 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Visibility(
-                          visible: loading || allChannels.isNotEmpty,
-                          replacement: Center(
-                            child: FilledButton(
-                              onPressed: () {
-                                context.read<ChannelProvider>().getChannels();
-                              },
-                              child: const Text('Try Again'),
+                  child: Builder(
+                    builder: (context) {
+                      if (currentUrl == null || currentUrl.isEmpty) {
+                        return Center(
+                          child:  Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 80),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('Unitv is an IPTV player and does not provide video content. You can select a playlist from the integrated list or import your own.', textAlign: TextAlign.center,),
+                                const SizedBox(height: 20,),
+                                FilledButton(
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SelectM3u8Page()));
+                                  },
+                                  child: const Text('Select M3U Playlist'),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Scrollbar(
-                            child: GridView.builder(
-                              controller: scrollController,
-                              itemBuilder: (context, index) {
-                                final item = channels[index];
-                                return ChannelListTile(item: item);
-                              },
-                              itemCount: channels.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                      mainAxisSpacing: 5,
-                                      crossAxisSpacing: 5,
-                                      crossAxisCount: 4,
-                                      childAspectRatio: 1.2),
-                            ),
+                        );
+                      } else if (!loading && allChannels.isEmpty) {
+                        return Center(
+                          child: FilledButton(
+                            onPressed: () {
+                              context.read<ChannelProvider>().getChannels();
+                            },
+                            child: const Text('Try Again'),
                           ),
-                        ),
-                      )
-                    ],
+                        );
+                      } else {
+                        return Scrollbar(
+                          child: GridView.builder(
+                            controller: scrollController,
+                            itemBuilder: (context, index) {
+                              final item = channels[index];
+                              return ChannelListTile(item: item);
+                            },
+                            itemCount: channels.length,
+                            gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                mainAxisSpacing: 5,
+                                crossAxisSpacing: 5,
+                                crossAxisCount: 4,
+                                childAspectRatio: 1.2),
+                          ),
+                        );
+                      }
+                    }
                   ),
                 ),
               ],

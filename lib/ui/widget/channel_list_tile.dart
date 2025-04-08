@@ -24,15 +24,6 @@ class _ChannelListTileState extends State<ChannelListTile> {
   @override
   void initState() {
     super.initState();
-    // if (widget.item.url != null) {
-    //   isM3U8Playable(widget.item.url!).then((value) {
-    //     if (mounted) {
-    //       setState(() {
-    //         isAvailable = value;
-    //       });
-    //     }
-    //   });
-    // }
   }
 
   @override

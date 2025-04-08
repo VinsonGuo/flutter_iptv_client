@@ -120,7 +120,7 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
                           }),
                     ),
                     Visibility(
-                        visible: url != defaultM3u8Url && url != currentUrl,
+                        visible: !defaultM3u8Urls.contains(url) && url != currentUrl,
                         child: IconButton(
                           onPressed: () async {
                             final result = await showDialog(
@@ -167,6 +167,9 @@ class _SelectM3u8PageState extends State<SelectM3u8Page> {
   Future<void> onImportPress(ChannelProvider provider) async {
     FocusManager.instance.primaryFocus?.unfocus();
     final text = textEditingController.text.trim();
+    if (text.isEmpty) {
+      return;
+    }
     if (await provider.importFromUrl(text)) {
       if (mounted) {
         ScaffoldMessenger.of(context)
